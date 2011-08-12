@@ -1,0 +1,49 @@
+-12 A  - 220hz
+...
+0 A   - 440hz
+1 A#
+2 B
+3 C
+4 C#
+5 D 
+6 D#
+7 E
+8 F
+9 F#
+10 G 
+11 G#
+12 A  - 880hz
+
+
+1.0594630943592
+
+
+
+XML version:
+<song speed="120">
+	<step t="0">
+		<A oct=1 dt="1"/>
+		<D oct=1 dt="1"/>
+	<step/>
+<song/>
+
+JSON version:
+{
+	"song":{
+	 "step":{
+		"t":0
+		"note":{
+			"tone":'A'
+			"octave":1
+			"duration":1
+		}
+		"note":{
+			"tone":'B'
+			"octave":1
+			"duration":1
+		}
+	}
+}
+
+<A oct="1" duration="1"/>
+{"note":{"tone":'A' "octave":1 "duration":1}}
