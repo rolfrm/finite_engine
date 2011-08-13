@@ -1,17 +1,5 @@
 #include <list>
-void Init(int width,int height, bool fullscreen);
-void DeInit();
-void Draw(float x, float y, Drawable poly);
-void Zoom(float x,float y);
-class Shader;
-class Framebuffer;
-
-extern Shader * DefaultShader;
-extern Framebuffer * DefaultFramebuffer;
-
-void SetActiveShader(Shader*);
-void SetActiveFramebuffer(Framebuffer*);
-void SetActiveTexture(Texture *);
+#include <string>
 
 class Vec2{
 	public:
@@ -29,9 +17,23 @@ class Drawable{
 	virtual void Draw();
 };
 
-class Polygon{
+class DrawableTest: public Drawable{
+		public:
+		DrawableTest();
+		void Draw();
+		unsigned int testVBO;
+};
+
+class Polygon:public Drawable{
 	public:
-	Polygon(std::list<Vec3> vertexes, std::list<int,int> indices,std::list<Vec3> colors, std::list<Vec2> uvs);
+	Polygon(std::list<Vec3> vertexes, std::list<int> indices, std::list<Vec3> colors, std::list<Vec2> uvs);
+};
+
+class Text:public Drawable{
+	public:
+	Text(std::string fontbase);
+	void SetText(std::string text);
+	
 };
 
 class Texture{
@@ -47,6 +49,25 @@ class Framebuffer{
 
 class Shader{
 	public:
-	Shader(char * vertexSource, char* fragmentSource);
+	Shader(std::string vertexSource, std::string fragmentSource);
+	Shader();
+	
+	unsigned int ShaderProgram;
 };
+
+void Init(int width,int height, bool fullscreen);
+void DeInit();
+void Refresh();
+void Draw(float x, float y, Drawable * poly);
+void Zoom(float x,float y);
+class Shader;
+class Framebuffer;
+
+extern Shader DefaultShader;
+extern Framebuffer DefaultFramebuffer;
+
+void SetActiveShader(Shader);
+void SetActiveFramebuffer(Framebuffer*);
+void SetActiveTexture(Texture *);
+
 
