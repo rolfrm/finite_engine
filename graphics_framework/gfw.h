@@ -1,14 +1,14 @@
 #include <list>
 #include <string>
-
-class Vec2{
+#include <vector>
+/*class Vec2{
 	public:
 	Vec2(float x,float y);
 };
 class Vec3{
 	public:
 	Vec3(float x,float y, float z);
-};
+};*/
 
 
 class Drawable{
@@ -26,10 +26,21 @@ class DrawableTest: public Drawable{
 
 class Polygon:public Drawable{
 	public:
-	Polygon(std::list<Vec3> vertexes, std::list<int> indices, std::list<Vec3> colors, std::list<Vec2> uvs);
+	Polygon(std::vector<float> vertexes, std::vector<int> indices, std::vector<float> colors, std::vector<float> uvs);
+	Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv);
+	
+	
+	void Draw();
+	
+	std::vector<float> vertexes;
+	unsigned int vertVbo;
+	
+	private:
+	void refreshVbos();
+	
 };
 
-class Text:public Drawable{
+/*class Text:public Drawable{
 	public:
 	Text(std::string fontbase);
 	void SetText(std::string text);
@@ -45,29 +56,30 @@ class Framebuffer{
 	public:
 	Framebuffer();
 	Texture GetAsTexture();
-};
+};*/
 
 class Shader{
 	public:
-	Shader(std::string vertexSource, std::string fragmentSource);
+	Shader(const char * vertexSource, const char * fragmentSource);
 	Shader();
 	
+	unsigned int GetUniformLocation(const char * uniformname);
+	void SetUniform1f(float value,const char * uniformname);
+	void SetUniform2f(float v1,float v2,const char * uniformname);
+	void SetUniform3f(float v1, float v2, float v3,const char * uniformname);
 	unsigned int ShaderProgram;
 };
 
 void Init(int width,int height, bool fullscreen);
 void DeInit();
 void Refresh();
-void Draw(float x, float y, Drawable * poly);
-void Zoom(float x,float y);
-class Shader;
-class Framebuffer;
+void Draw(float x, float y,float rotation, Drawable * poly);
+void PrintString(const char * str,int len);
+//void Zoom(float x,float y);
 
-extern Shader DefaultShader;
-extern Framebuffer DefaultFramebuffer;
 
 void SetActiveShader(Shader);
-void SetActiveFramebuffer(Framebuffer*);
-void SetActiveTexture(Texture *);
+//void SetActiveFramebuffer(Framebuffer*);
+//void SetActiveTexture(Texture *);
 
 

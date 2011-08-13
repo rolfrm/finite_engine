@@ -75,9 +75,9 @@ def squareStep(curmap,scaling):
 	return newmap
 	
 
-Map = numpy.zeros((6,6))
-Map[2][2] = 0
-for i in range(0,6):
+Map = numpy.zeros((7,7))
+Map[2][2] = 5
+for i in range(0,4):
 	scaling = 0.5**float(i)
 	Map = squareStep(Map,scaling)
 	Map = diamondStep(Map,scaling)
@@ -180,5 +180,5 @@ for i in range(0,100000):
 			water += 0.1
 			counter = 0
 		if k == 'b' and counter > 10:
-			water[:water.shape[0]/8,:water.shape[1]/8] += 1		
+			water[:water.shape[0]/8,:water.shape[1]/8] += 50
 		#saveMap2(dv,"h" + str(i)+ ".png",3,-3)
