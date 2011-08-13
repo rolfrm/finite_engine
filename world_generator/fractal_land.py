@@ -48,6 +48,7 @@ def diamondStep(curmap,scaling):
 				nval += curmap[x][y+1]
 				n +=1
 			nval /=n
+			#nval += random.random()*scaling			
 			nval += random.gauss(0,1)*scaling
 			curmap[x,y] = nval
 	return curmap
@@ -67,24 +68,26 @@ def squareStep(curmap,scaling):
 			x = i*2 +1
 			y = j*2 +1
 			nval = (newmap[x-1][y-1] + newmap[x+1][y-1] + newmap[x-1][y+1] + newmap[x+1][y+1])/4
+			#nval += random.random()*scaling
 			nval += random.gauss(0,1)*scaling
 			newmap[x][y] = nval
 			
 	return newmap
 	
 
-Map = numpy.zeros((5,5))
+Map = numpy.zeros((6,6))
 Map[2][2] = 0
 for i in range(0,6):
 	scaling = 0.5**float(i)
 	Map = squareStep(Map,scaling)
 	Map = diamondStep(Map,scaling)
+	print Map.shape
 m = Map.mean()
 s = Map.var()
 waterheight = 0
 
 water = numpy.ones(Map.shape)*waterheight
-water = water - Map
+water = (water - Map)*0
 for i in range(0,water.shape[0]):
 	row = water[i]
 	for j in range(0,water.shape[1]):
@@ -107,7 +110,7 @@ def fixheights(h,water):
 	h[a] = 0
 
 #iterate water flow
-water += 0.1
+#water += 0.1
 g = 1
 l = 1
 A = 1			
@@ -118,7 +121,9 @@ padding = numpy.zeros(water.shape)
 saveMap(water,"h.png")
 saveMap(Map,"m.png")
 saveMap(totalheight,"th.png")
+counter = 0
 for i in range(0,100000):
+	counter +=1	
 	hl = padding.copy()
 	hr = padding.copy()
 	ht = padding.copy()
@@ -132,10 +137,10 @@ for i in range(0,100000):
 	fixheights(hr,water)
 	fixheights(hb,water)
 	fixheights(ht,water)
-	fl = fl + hl*g/l*dt
-	fr = fr + hr*g/l*dt
-	fb = fb + hb*g/l*dt
-	ft = ft + ht*g/l*dt
+	fl = fl + hl*(g/l*dt)
+	fr = fr + hr*(g/l*dt)
+	fb = fb + hb*(g/l*dt)
+	ft = ft + ht*(g/l*dt)
 	
 	outflow = fl+fr+fb+ft
 	outdv = dt*outflow
@@ -166,7 +171,14 @@ for i in range(0,100000):
 	totalheight = Map+water
 	#print totalheight.max()
 	if i%1 == 0:
-		print dv.max(),dv.min()
-		highgui.cvShowImage("oh hai",totalheight)
-		highgui.cvWaitKey(1)
+		m = totalheight
+		nim = (m-m.min() )/(m.max()-m.min() )
+		print nim.min(),nim.max()
+		highgui.cvShowImage("oh hai",nim)
+		k = highgui.cvWaitKey(1)
+		if k == 'a' and counter > 10:
+			water += 0.1
+			counter = 0
+		if k == 'b' and counter > 10:
+			water[:water.shape[0]/8,:water.shape[1]/8] += 1		
 		#saveMap2(dv,"h" + str(i)+ ".png",3,-3)
