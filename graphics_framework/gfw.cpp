@@ -172,21 +172,19 @@ void Polygon::refreshVbos(){
 void Polygon::Draw(){
 	int posAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"pos");
 	int colorAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"color");
+	
 	glEnableVertexAttribArray(posAttribLoc);
-	std::cout << colors.size() << " " << indices.size() << " " << vertexes.size() << "\n";
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
 	glVertexAttribPointer(posAttribLoc,2,GL_FLOAT,0,0,NULL);
 	if(usingColor){
 		glEnableVertexAttribArray(colorAttribLoc);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
-		glVertexAttribPointer(colorAttribLoc,3,GL_FLOAT,0,0,NULL);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, colorVbo);
+		glVertexAttribPointer(colorAttribLoc,3,GL_FLOAT,0,0,0);
 	}
-	
-	
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);	
-	glDrawElements(GL_TRIANGLE_STRIP,indices.size(),GL_UNSIGNED_INT,0);			
-	//glDrawArrays(GL_POLYGON,0, vertexes.size()/2);
+	glDrawElements(GL_QUADS,indices.size(),GL_UNSIGNED_INT,0);
 	glDisableVertexAttribArray(posAttribLoc);
+	
 	if(usingColor){
 		glDisableVertexAttribArray(colorAttribLoc);
 	}
