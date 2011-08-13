@@ -124,6 +124,25 @@ Polygon::Polygon(std::vector<float> vertexes, std::vector<int> indices, std::vec
 	}
 Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv){
 	this->vertexes = std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv);
+	this->indices = std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li);
+	
+	if(lc > 0){
+	this->colors = std::vector<float>((float*)rawdata_color,((float*)rawdata_color)+lc);
+	
+	usingColor = true;
+	}else{
+		usingColor = false;
+	
+	}
+	if(luv > 0){
+		usingUV = true;
+		this->uvs = std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv);
+	}else{
+		usingUV = false;
+	}
+	
+	
+	
 	refreshVbos();
 	}
 
@@ -133,17 +152,44 @@ void Polygon::refreshVbos(){
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,4*vertexes.size(),&vertexes[0],GL_STATIC_DRAW_ARB);
 	
+	glGenBuffersARB(1,&(this->indiceVbo));
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);
+	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER,4*indices.size(),&indices[0],GL_STATIC_DRAW_ARB);
+	
+	if(usingColor){
+		glGenBuffersARB(1,&colorVbo);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB,colorVbo);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB,4*colors.size(),&colors[0],GL_STATIC_DRAW_ARB);
+		}
+	if(usingUV){
+		glGenBuffersARB(1,&uvVbo);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB,uvVbo);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB,4*uvs.size(),&uvs[0],GL_STATIC_DRAW_ARB);
+		}
+	
 	}
 	
 void Polygon::Draw(){
 	int posAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"pos");
+	int colorAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"color");
 	glEnableVertexAttribArray(posAttribLoc);
-		
+	std::cout << colors.size() << " " << indices.size() << " " << vertexes.size() << "\n";
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
-	glVertexAttribPointer(posAttribLoc,2,GL_FLOAT,0,0,0);
-		
-	glDrawArrays(GL_POLYGON,0, vertexes.size()/2);
+	glVertexAttribPointer(posAttribLoc,2,GL_FLOAT,0,0,NULL);
+	if(usingColor){
+		glEnableVertexAttribArray(colorAttribLoc);
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
+		glVertexAttribPointer(colorAttribLoc,3,GL_FLOAT,0,0,NULL);
+	}
+	
+	
+	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);	
+	glDrawElements(GL_TRIANGLE_STRIP,indices.size(),GL_UNSIGNED_INT,0);			
+	//glDrawArrays(GL_POLYGON,0, vertexes.size()/2);
 	glDisableVertexAttribArray(posAttribLoc);
+	if(usingColor){
+		glDisableVertexAttribArray(colorAttribLoc);
+	}
 	}
 void PrintString(const char * str,int len){
 	float * fstr = (float *)str;

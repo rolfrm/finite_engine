@@ -32,8 +32,17 @@ class Polygon:public Drawable{
 	
 	void Draw();
 	
+	bool usingColor,usingUV;
+	
 	std::vector<float> vertexes;
+	std::vector <unsigned int>  indices;
+	std::vector<float> colors;
+	std::vector<float> uvs;
 	unsigned int vertVbo;
+	unsigned int indiceVbo;
+	unsigned int colorVbo;
+	
+	unsigned int uvVbo;
 	
 	private:
 	void refreshVbos();
