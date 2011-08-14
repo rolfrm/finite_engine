@@ -4,7 +4,7 @@
 #include "Objects/Constraint.hpp"
 #include "Shapes/Polygon.h"
 #include <math.h>
-
+#include <iostream>
 namespace Dormir{
 	Core::Core(unsigned int nMaxNodes){
 		CollisionDetecter=new SeperatingAxis(this);

@@ -5,8 +5,6 @@
  *      Author: sebastian
  */
 
-#include <armadillo>
-
 #ifndef PHYSICSSHAPES_H_
 #define PHYSICSSHAPES_H_
 
