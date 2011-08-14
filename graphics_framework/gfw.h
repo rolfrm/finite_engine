@@ -9,18 +9,35 @@ class Vec3{
 	public:
 	Vec3(float x,float y, float z);
 };*/
-
+class Texture{
+	public:
+	Texture(char * data, int width, int height);
+	
+	unsigned int GetGLTexture();
+	private:
+	unsigned char * data;
+	int width;
+	int height;
+	unsigned int gltex;
+	
+};
 
 class Drawable{
 	public:
 	Drawable();
+	void ActivateTextures();
 	virtual void Draw();
+	void AddTexture(Texture * tex,int textureChannel);
+	private:
+	Texture* boundTextures[2];
+		
 };
 
 class DrawableTest: public Drawable{
 		public:
 		DrawableTest();
 		void Draw();
+		
 		unsigned int testVBO;
 };
 
@@ -55,12 +72,9 @@ class Polygon:public Drawable{
 	void SetText(std::string text);
 	
 };
+*/
 
-class Texture{
-	public:
-	Texture(std::string path);
-};
-
+/*
 class Framebuffer{
 	public:
 	Framebuffer();
@@ -76,6 +90,9 @@ class Shader{
 	void SetUniform1f(float value,const char * uniformname);
 	void SetUniform2f(float v1,float v2,const char * uniformname);
 	void SetUniform3f(float v1, float v2, float v3,const char * uniformname);
+	
+	void SetUniform1i(int value, const char * uniformname);
+	
 	unsigned int ShaderProgram;
 };
 
@@ -83,7 +100,6 @@ void Init(int width,int height, bool fullscreen);
 void DeInit();
 void Refresh();
 void Draw(float x, float y,float rotation, Drawable * poly);
-void PrintString(const char * str,int len);
 //void Zoom(float x,float y);
 
 

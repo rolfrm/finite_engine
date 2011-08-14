@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <string.h>
+#include <stdio.h>
 void printLog(GLuint obj)
 {
     int infologLength = 0;
@@ -27,13 +28,16 @@ void SetActiveShader(Shader s){
 
 void Init(int width,int height, bool fullscreen){
 	glfwInit();
-	
 	if(fullscreen){
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_FULLSCREEN);
 	}else{
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_WINDOW);
 	}
-	glewInit() ;
+	GLenum err = glewInit();
+	if (GLEW_OK != err)
+	{
+		std::cout << "Error setting up GLEW!\n";
+	}
 	SetActiveShader(Shader("attribute vec2 pos; \nvoid main(){\n gl_Position=vec4(pos,0,1);}","void main(){gl_FragColor= vec4(1,1,0,1);\n}"));
 	glPointSize(3);
 	glColor4f(1,1,1,1);
@@ -54,6 +58,29 @@ void Draw(float x,float y, float rotation, Drawable* drw){
 	ActiveShader.SetUniform1f(rotation,"Rotation");
 	drw->Draw();
 }
+
+Texture::Texture(char* data, int width, int height){
+	this->data = (unsigned char*)data;
+	this->width = width;
+	this->height = height;
+	gltex = -1;
+		
+	}
+unsigned int Texture::GetGLTexture(){
+	if(gltex == (unsigned int)-1){
+		
+		glGenTextures(1,&gltex);
+		glBindTexture(GL_TEXTURE_2D, gltex);
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,this->width,this->height,0,GL_RGB,GL_UNSIGNED_BYTE,data);
+	}
+	return gltex;
+	
+}
+
 
 Shader::Shader( const char * vertexsrc, const char * fragmentsrc){
 	const char* vsrc = vertexsrc;
@@ -86,15 +113,41 @@ void Shader::SetUniform2f(float v1,float v2,const char * uniformname){
 void Shader::SetUniform3f(float v1, float v2, float v3,const char * uniformname){
 		glUniform3f(GetUniformLocation(uniformname),v1,v2,v3);
 	}
+void Shader::SetUniform1i(int value, const char * uniformname){
+		int loc = GetUniformLocation(uniformname);
+		glUniform1i(loc,value);
+	}
 unsigned int Shader::GetUniformLocation(const char * uniformname){
 	return glGetUniformLocation(ShaderProgram,uniformname);
 	}
+
+#define MAXTEXTURES 2
 Drawable::Drawable(){
-	
+	for(int i= 0; i < MAXTEXTURES;i++){
+		boundTextures[i] = NULL;
+		}
 	}
 void Drawable::Draw(){
 	
 	}
+void Drawable::AddTexture(Texture * tex,int textureChannel){
+	if(textureChannel >= 0 && textureChannel < 2){
+		boundTextures[textureChannel] = tex;
+		
+	}
+}
+
+void Drawable::ActivateTextures(){
+	for(int i = 0; i < 2;i++){
+			if(boundTextures[i] != NULL){
+				glActiveTexture(GL_TEXTURE0 + i);
+				glBindTexture(GL_TEXTURE_2D, boundTextures[i]->GetGLTexture());
+				char buf[10];
+				sprintf(buf,"tex%i",i);
+				ActiveShader.SetUniform1i(i,buf);
+			}
+	}
+}
 
 DrawableTest::DrawableTest(){
 	
@@ -142,7 +195,6 @@ Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, uns
 	}
 	
 	
-	
 	refreshVbos();
 	}
 
@@ -170,9 +222,10 @@ void Polygon::refreshVbos(){
 	}
 	
 void Polygon::Draw(){
+	
 	int posAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"pos");
 	int colorAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"color");
-	
+	int uvAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"uv");
 	glEnableVertexAttribArray(posAttribLoc);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
 	glVertexAttribPointer(posAttribLoc,2,GL_FLOAT,0,0,NULL);
@@ -180,19 +233,28 @@ void Polygon::Draw(){
 		glEnableVertexAttribArray(colorAttribLoc);
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, colorVbo);
 		glVertexAttribPointer(colorAttribLoc,3,GL_FLOAT,0,0,0);
+		
 	}
+	
+	if(usingUV){
+			//glEnable(GL_TEXTURE_2D);
+			ActivateTextures();
+			glEnableVertexAttribArray(uvAttribLoc);
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB,uvVbo);
+			glVertexAttribPointer(uvAttribLoc,2,GL_FLOAT,0,0,0);
+		
+	}
+	
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);	
 	glDrawElements(GL_QUADS,indices.size(),GL_UNSIGNED_INT,0);
 	glDisableVertexAttribArray(posAttribLoc);
 	
 	if(usingColor){
+		
 		glDisableVertexAttribArray(colorAttribLoc);
 	}
-	}
-void PrintString(const char * str,int len){
-	float * fstr = (float *)str;
-	for(int i=0; i < len;i++){
-		std::cout << (float) fstr[i] << " " ;
+	if(usingUV){
+		glDisableVertexAttribArray(uvAttribLoc);
 		}
-	std::cout << "\n";
+	
 	}
