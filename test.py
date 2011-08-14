@@ -28,7 +28,7 @@ varying vec3 vColor;
 varying vec2 vuv;
 void main(){
 	vec3 tex = texture2D(tex0,vuv).xyz;
-	vec3 col = tex + vColor;
+	vec3 col = tex + vColor + vec3(0.5,0.5,0.5);
 	col.x -=vuv.x;
 gl_FragColor= vec4(col,1);
 }
