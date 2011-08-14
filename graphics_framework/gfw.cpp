@@ -29,24 +29,29 @@ void SetActiveShader(Shader s){
 void Init(int width,int height, bool fullscreen){
 	glfwInit();
 	std::cout << "GLFW Inited\n";
+	
 	if(fullscreen){
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_FULLSCREEN);
 	}else{
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_WINDOW);
 	}
 	std::cout << "Window opened\n";
+	
+	std:cout << "setting stuff.\n"
+	glPointSize(3);
+	glColor4f(1,1,1,1);
+	
+	std::cout << "initing";
 	GLenum err = glewInit();
-	std::cout << "Glew inited";
 	if (GLEW_OK != err)
 	{
 		std::cout << "Error setting up GLEW!\n";
 	}
-	SetActiveShader(Shader("attribute vec2 pos; \nvoid main(){\n gl_Position=vec4(pos,0,1);}","void main(){gl_FragColor= vec4(1,1,0,1);\n}"));
-	std::cout << "Shader compiled + activated\n";
-	glPointSize(3);
-	glColor4f(1,1,1,1);
+	
 	std::cout << "End of init\n";
 }
+
+
 
 void Refresh(){
 		glfwSwapBuffers();
