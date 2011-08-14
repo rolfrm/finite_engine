@@ -25,6 +25,8 @@ namespace Dormir{
 
 	struct CollisionNode;
 
+	class Fixpoint;
+
 
 
 	class PhysicsObject{
@@ -45,7 +47,9 @@ namespace Dormir{
 		void AddForce(double x,double y);
 		void AddTorque(double T){angleSpeed+=T*invInertia;};
 
-		bool LoadPolygon(Dormir::Polygon * P);
+		bool LoadPolygon(Dormir::Polygon P);
+		bool AttachPoint(Fixpoint * F);
+		bool DetachPoint(Fixpoint * F);
 		void DeleteBody();
 		double GetMass(){return mass;};
 		double GetInverseMass(){return invMass;};
@@ -72,7 +76,8 @@ namespace Dormir{
 		friend class Model;
 		friend class Impulse;
 		friend class Core;
-		std::list<Dormir::Polygon *> Body;
+		std::list<Dormir::Polygon> Body;
+		std::list<Fixpoint *> AttachedPoints;
 	protected:
 		void AdvancePosition();
 		void AdvanceAngle();

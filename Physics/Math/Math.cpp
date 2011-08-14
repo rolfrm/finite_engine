@@ -8,6 +8,7 @@
 #include "Math.hpp"
 #include <math.h>
 
+namespace Dormir{
 
 	Vec2::Vec2(){
 		Vec2(0,0);
@@ -60,3 +61,5 @@
 		return V.x*U.y-V.y*U.x;
 	}
 
+
+}

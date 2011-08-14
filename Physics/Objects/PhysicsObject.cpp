@@ -1,4 +1,5 @@
 #include "PhysicsObject.h"
+#include "Constraint.hpp"
 #include "../Shapes/Polygon.h"
 #include <math.h>
 
@@ -43,38 +44,31 @@ namespace Dormir{
 		mass=newMass;
 	}
 
-	bool PhysicsObject::LoadPolygon(Dormir::Polygon * P){
-		if(P->Vertex.size()==0)
+	bool PhysicsObject::LoadPolygon(Dormir::Polygon P){
+		if(P.Vertex.size()==0)
 			return false;
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++)
-			if(*it==P)
-				return false;
-		if(P->getArea()<0)   // Disse tre linjer antager at polygonen er færdigfremstillet
-			P->ReverseVertex();
-		P->CalculateAxis();
+		if(P.getArea()<0)   // Disse tre linjer antager at polygonen er færdigfremstillet
+			P.ReverseVertex();
+		P.CalculateAxis();
 
 		Body.push_back(P);
 		return true;
 	}
 
 	void PhysicsObject::DeleteBody(){
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++){
-			if(*it!=NULL)
-				delete *it;
-		}
 		Body.clear();
 	}
 
 	void PhysicsObject::CalculateMomentofInertia(){
 		double TotalArea=0;
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++){
+		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++){
 		/*	if((*it)->getArea()<0) // Denne del muligvis fjernes
 				(*it)->ReverseVertex();*/
-			TotalArea+=(*it)->getArea();
+			TotalArea+=it->getArea();
 		}
 		Pos.SetValue(0,0);
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++)
-			Pos+=(*it)->getCentroid()*((*it)->getArea()/TotalArea);
+		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++)
+			Pos+=it->getCentroid()*(it->getArea()/TotalArea);
 
 		if(mass==0){
 			inertia=0;
@@ -82,10 +76,10 @@ namespace Dormir{
 			return;
 		}
 		inertia=0;
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++){
-			double PartMass=mass*(*it)->getArea()/TotalArea,partInertia=0,denom=0;
-			std::vector<Vec2> V=(*it)->getVertex();
-			Vec2 C=(*it)->getCentroid();
+		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++){
+			double PartMass=mass*it->getArea()/TotalArea,partInertia=0,denom=0;
+			std::vector<Vec2> V=it->getVertex();
+			Vec2 C=it->getCentroid();
 			for(unsigned int i=0;i<V.size();i++)
 				V[i]-=C;
 			//V-=Temp;
@@ -97,7 +91,7 @@ namespace Dormir{
 			partInertia/=denom;
 			partInertia/=6;
 			partInertia*=PartMass;
-			inertia+=partInertia+PartMass*((*it)->getCentroid()-Pos).GetNorm2();
+			inertia+=partInertia+PartMass*(it->getCentroid()-Pos).GetNorm2();
 		}
 		invInertia=1/inertia;
 	}
@@ -121,24 +115,30 @@ namespace Dormir{
 		if(Vel.GetNorm2()<1e-9)
 			Vel.SetValue(0,0);
 		angle+=angleSpeed;
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++){
-			(*it)->Move(-Pos.x,-Pos.y);
+		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++){
+			it->Move(-Pos.x,-Pos.y);
+			it->Rotate(angleSpeed);
+			it->Move(Pos.x,Pos.y);
+			it->Move(Vel.x,Vel.y);
+		}
+		for(std::list<Fixpoint *>::iterator it=AttachedPoints.begin();it!=AttachedPoints.end();it++){
 			(*it)->Rotate(angleSpeed);
-			(*it)->Move(Pos.x,Pos.y);
-			(*it)->Move(Vel.x,Vel.y);
 		}
 		Pos+=Vel;
 	}
 
 	void PhysicsObject::Revert(){
-		angle-=angleSpeed;
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++){
-			(*it)->Move(Pos*(-1));
+		for(std::list<Fixpoint *>::iterator it=AttachedPoints.begin();it!=AttachedPoints.end();it++){
+			(*it)->AdjustPos(Pos*(-1));
 			(*it)->Rotate(-angleSpeed);
+			(*it)->AdjustPos(Pos);
+			(*it)->AdjustPos(Vel*(-1));
+		}
+		angle-=angleSpeed;
+		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++){
+			it->Rotate(-angleSpeed);
 		}
 		Pos-=Vel;
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++)
-			(*it)->Move(Pos);
 	}
 
 	void PhysicsObject::AddForce(Vec2 Force,Vec2 Arm){
@@ -164,8 +164,8 @@ namespace Dormir{
 
 	void PhysicsObject::AdjustPosition(Vec2 v){
 		Pos+=v;
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++)
-			(*it)->Move(v);
+		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++)
+			it->Move(v);
 
 	}
 
@@ -175,19 +175,44 @@ namespace Dormir{
 	}
 
 	void PhysicsObject::FindBounds(){
-		for(std::list<Dormir::Polygon *>::iterator itf=Body.begin();itf!=Body.end();itf++){
-			(*itf)->FindBounds();
+		for(std::list<Dormir::Polygon>::iterator itf=Body.begin();itf!=Body.end();itf++){
+			itf->FindBounds();
 		}
 	}
 
 	void PhysicsObject::AdjustAngle(double a){
 		angle+=a;
-		for(std::list<Dormir::Polygon *>::iterator it=Body.begin();it!=Body.end();it++){
-			(*it)->Move(Pos*(-1));
-			(*it)->Rotate(a);
-			(*it)->Move(Pos);
+		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++){
+			it->Move(Pos*(-1));
+			it->Rotate(a);
+			it->Move(Pos);
 
 		}
+		for(std::list<Fixpoint *>::iterator it=AttachedPoints.begin();it!=AttachedPoints.end();it++){
+			(*it)->Rotate(a);
+		}
 
+	}
+
+	bool PhysicsObject::AttachPoint(Fixpoint * F){
+		for(std::list<Fixpoint *>::iterator it= AttachedPoints.begin();it!=AttachedPoints.end();it++){
+			if(F==*it){
+				return false;
+			}
+		}
+		F->setPhysicsObject(this);
+		AttachedPoints.push_back(F);
+		return true;
+	}
+
+	bool PhysicsObject::DetachPoint(Fixpoint * F){
+		for(std::list<Fixpoint *>::iterator it= AttachedPoints.begin();it!=AttachedPoints.end();it++){
+			if(F==*it){
+				F->setPhysicsObject(NULL);
+				AttachedPoints.erase(it);
+				return true;
+			}
+		}
+		return false;
 	}
 }

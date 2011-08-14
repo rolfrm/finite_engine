@@ -7,8 +7,14 @@
 
 #include "Constraint.hpp"
 #include "PhysicsObject.h"
+#include <math.h>
 
 namespace Dormir{
+
+	void Fixpoint::Rotate(double angle){
+		double cos0=cos(angle),sin0=sin(angle);
+		P.SetValue(cos0*P.x-sin0*P.y,sin0*P.x+cos0*P.y);
+	}
 
 	Spring::Spring(double springconstant,double dampening,double rest){
 		k=springconstant;

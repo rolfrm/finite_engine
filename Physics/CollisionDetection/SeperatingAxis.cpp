@@ -1,3 +1,4 @@
+#include <armadillo>
 #include "../Shapes/Polygon.h"
 #include "../Objects/PhysicsObject.h"
 #include "../PhysicsCore.h"
@@ -16,8 +17,8 @@ namespace Dormir{
 
 	void SeperatingAxis::Run(){
 		for(std::list<Dormir::PhysicsObject *>::iterator it=core->Objects.begin();it!=core->Objects.end();it++){
-			for(std::list<Dormir::Polygon *>::iterator itf=(*it)->Body.begin();itf!=(*it)->Body.end();itf++){
-				(*itf)->FindBounds();
+			for(std::list<Dormir::Polygon>::iterator itf=(*it)->Body.begin();itf!=(*it)->Body.end();itf++){
+				itf->FindBounds();
 			}
 		}
 		for(std::list<Dormir::PhysicsObject *>::iterator it=core->Objects.begin();it!=core->Objects.end();it++){
@@ -77,10 +78,10 @@ namespace Dormir{
 	}
 
 	void SeperatingAxis::CollisionDetection(Dormir::PhysicsObject * obj1,Dormir::PhysicsObject * obj2){
-		for(std::list<Dormir::Polygon *>::iterator it=obj1->Body.begin();it!=obj1->Body.end();it++){
-			for(std::list<Dormir::Polygon *>::iterator it2=obj2->Body.begin();it2!=obj2->Body.end();it2++){
-				if(PreCollisionDetection(*it,*it2)){
-					SAT(*it,*it2,obj1,obj2);
+		for(std::list<Dormir::Polygon>::iterator it=obj1->Body.begin();it!=obj1->Body.end();it++){
+			for(std::list<Dormir::Polygon>::iterator it2=obj2->Body.begin();it2!=obj2->Body.end();it2++){
+				if(PreCollisionDetection(&*it,&*it2)){
+					SAT(&*it,&*it2,obj1,obj2);
 				}
 			}
 		}

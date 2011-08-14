@@ -5,6 +5,7 @@
 #include "Shapes/Polygon.h"
 #include <math.h>
 #include <iostream>
+
 namespace Dormir{
 	Core::Core(unsigned int nMaxNodes){
 		CollisionDetecter=new SeperatingAxis(this);
@@ -50,6 +51,7 @@ namespace Dormir{
 
 		double A[allocatedNodes];
 		double T[allocatedNodes];
+		double K1[Joints.size()],K2[Joints.size()],K3[Joints.size()];
 		for(unsigned int i=0;i<allocatedNodes;i++){
 			Nodes[i].I=0;
 			//A[i]=impulse->CalculateEntryA(Nodes[i].axis,Nodes[i].axis,Nodes[i].rf,Nodes[i].rf,Nodes[i].from)+impulse->CalculateEntryA(Nodes[i].axis,Nodes[i].axis,Nodes[i].rt,Nodes[i].rt,Nodes[i].to);
@@ -57,6 +59,18 @@ namespace Dormir{
 			Nodes[i].T=0;
 			//T[i]=impulse->CalculateEntryA(Nodes[i].tangent,Nodes[i].tangent,Nodes[i].rf,Nodes[i].rf,Nodes[i].from)+impulse->CalculateEntryA(Nodes[i].tangent,Nodes[i].tangent,Nodes[i].rt,Nodes[i].rt,Nodes[i].to);
 			T[i]=CalculateImpulseCoeffiecient(Nodes[i].tangent,Nodes[i].rf,Nodes[i].rt,Nodes[i].from,Nodes[i].to);
+		}
+		for(unsigned int i=0;i<Joints.size();i++){
+			PhysicsObject * O=Joints[i]->P[0].getPhysicsObject(),* O2=Joints[i]->P[1].getPhysicsObject();
+			Vec2 r=Joints[i]->P[0].getPos(),r2=Joints[i]->P[1].getPos();
+			double k=O->GetInverseMass()+r.GetNorm2()*r.GetNorm2()*O->GetInverseInertia();
+			k+=O2->GetInverseMass()+r2.GetNorm2()*r2.GetNorm2()*O2->GetInverseInertia();
+			K1[i]=k-(r.x*r.x*O->GetInverseInertia()+r2.x*r2.x*O2->GetInverseInertia());
+			K2[i]=-(r.x*r.y*O->GetInverseInertia()+r2.x*r2.y*O2->GetInverseInertia());
+			K3[i]=k-(r.y*r.y*O->GetInverseInertia()+r2.y*r2.y*O2->GetInverseInertia());
+			//std::cout<<"constants "<<O2->GetInverseMass()<<" "<<O2->GetInverseInertia()<<"\n";
+		//	std::cout<<"booze "<<k<<" "<<K1[i]<<" "<<K2[i]<<" "<<K3[i]<<"\n";
+		//	J[i]=CalculateImpulseCoeffiecient(Joints[i])
 		}
 
 
@@ -98,10 +112,27 @@ namespace Dormir{
 				Nodes[i].from->AddForce(Nodes[i].tangent*-(Nodes[i].T-tempT),Nodes[i].rf);
 
 			}
+
 			N/=allocatedNodes;
 			if(N<1e-7){
 				break;
 			}
+		}
+
+		for(unsigned int i=0;i<Joints.size();i++){
+			double k1=K1[i],k2=K2[i],k3=K3[i];
+			PhysicsObject * O=Joints[i]->P[0].getPhysicsObject(),* O2=Joints[i]->P[1].getPhysicsObject();
+			Vec2 P,dv=O->GetVelocity(),r=Joints[i]->P[0].getPos(),r2=Joints[i]->P[1].getPos();
+			dv+=Vec2(-O->GetAnglespeed()*r.y,O->GetAnglespeed()*r.x);
+			Vec2 dP=O->GetPosition()+Joints[i]->P[0].getPos()-O2->GetPosition()-Joints[i]->P[1].getPos();
+			std::cout<<"vbias "<<dP.x<<" "<<dP.y<<"\n";
+			dP*=-Joints[i]->v_bias;
+			dv-=dP;
+			P.y=(-dv.y+dv.x*k2/k1)/(k3-k2*k2/k1);
+			P.x=-(dv.x+P.y*k2)/k1;
+			O->AddForce(P,r);
+			O2->AddForce(P*(-1),r2);
+			std::cout<<"result for joint ("<<P.x<<","<<P.y<<")\n";
 		}
 
 		allocatedImpulseNodes=0;
@@ -158,9 +189,9 @@ namespace Dormir{
 
 	Dormir::PhysicsObject * Core::PointInsideObject(int x,int y){
 		for(std::list<Dormir::PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
-			for(std::list<Dormir::Polygon *>::iterator itf=(*it)->Body.begin();itf!=(*it)->Body.end();itf++){
-				(*itf)->FindBounds();
-				if((*itf)->BoundingBox[0].x<x && x<(*itf)->BoundingBox[1].x && (*itf)->BoundingBox[0].y<y && y<(*itf)->BoundingBox[1].y )
+			for(std::list<Dormir::Polygon>::iterator itf=(*it)->Body.begin();itf!=(*it)->Body.end();itf++){
+				itf->FindBounds();
+				if(itf->BoundingBox[0].x<x && x<itf->BoundingBox[1].x && itf->BoundingBox[0].y<y && y<itf->BoundingBox[1].y )
 					return *it;
 			}
 		}

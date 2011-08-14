@@ -17,12 +17,15 @@ class PhysicsObject;
 
 class Fixpoint{
 public:
-	Fixpoint();
+	Fixpoint(){};
 
 	void setPhysicsObject(PhysicsObject * O){Obj=O;};
 	PhysicsObject * getPhysicsObject(){return Obj;};
 
-	void UpdateFixpoint(Vec2 V){P=V;};
+	void SetPos(Vec2 V){P=V;};
+	void AdjustPos(Vec2 V){P+=V;};
+	Vec2 getPos(){return P;};
+	void Rotate(double angle);
 
 private:
 	Vec2 P;
@@ -79,9 +82,12 @@ private:
 	Vec2 FixedPos;
 };
 
-class Joint:public Constraint{
+class Joint{
 public:
-	Joint();
+	Joint(){};
+
+	Fixpoint P[2];
+	double v_bias,slop;
 };
 
 

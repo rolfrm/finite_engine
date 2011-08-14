@@ -18,6 +18,7 @@ namespace Dormir{
 	class SeperatingAxis;
 	class Model;
 	class Constraint;
+	class Joint;
 
 
 	struct CollisionNode{
@@ -56,6 +57,7 @@ namespace Dormir{
 		Dormir::PhysicsObject * PointInsideObject(int x,int y);
 		Dormir::PhysicsObject * PointInsideObject(Vec2);
 		std::list<Dormir::PhysicsObject *> Objects;
+		std::vector<Dormir::Joint *> Joints;
 
 		friend class SeperatingAxis;
 		friend class LCPSolver;
