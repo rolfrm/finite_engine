@@ -8,10 +8,6 @@
 #ifndef MATH_HPP_
 #define MATH_HPP_
 
-namespace Dormir{
-
-
-
 	class Vec2{
 	public:
 		Vec2(double x,double y);
@@ -36,6 +32,4 @@ namespace Dormir{
 	};
 
 	double Crossproduct(Vec2,Vec2);
-}
-
 #endif /* MATH_HPP_ */
