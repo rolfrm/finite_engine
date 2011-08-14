@@ -24,6 +24,7 @@ vuv = uv;//vec2(0.5,0.5);
 
 fs = """
 uniform sampler2D tex0;
+uniform sampler2D tex1;
 varying vec3 vColor;
 varying vec2 vuv;
 void main(){
