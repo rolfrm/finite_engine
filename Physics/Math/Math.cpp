@@ -8,7 +8,7 @@
 #include "Math.hpp"
 #include <math.h>
 
-namespace Dormir{
+//namespace Dormir{
 
 	Vec2::Vec2(){
 		Vec2(0,0);
@@ -62,4 +62,4 @@ namespace Dormir{
 	}
 
 
-}
+//}
