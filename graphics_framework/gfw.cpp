@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
+#include <list>
 void printLog(GLuint obj)
 {
     int infologLength = 0;
@@ -19,6 +20,21 @@ void printLog(GLuint obj)
     if (infologLength > 0)
 		std::cout << infoLog << "\n";
 }
+
+std::list<KeyEvent> KeyEvents;
+
+void GLFWCALL keycallback( int key, int action ){
+	KeyEvent newKeyEv;
+	newKeyEv.key = key;  
+	newKeyEv.action = action;
+	KeyEvents.push_back(newKeyEv);
+}
+std::list<KeyEvent> GetKeyEvents(){
+	std::list<KeyEvent> out = KeyEvents;
+	KeyEvents = std::list<KeyEvent>();
+	return out;
+	}
+
 Shader ActiveShader;
 void SetActiveShader(Shader s){
 		ActiveShader = s;
@@ -28,11 +44,13 @@ void SetActiveShader(Shader s){
 
 void Init(int width,int height, bool fullscreen){
 	glfwInit();
+	
 	if(fullscreen){
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_FULLSCREEN);
 	}else{
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_WINDOW);
 	}
+	glfwSetKeyCallback(keycallback);
 	std::cout << "Window opened\n";
 	
 	std::cout << "setting stuff.\n";
@@ -205,7 +223,7 @@ Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, uns
 	}
 
 void Polygon::refreshVbos(){
-	std::cout << vertexes.size() << "\n";
+	//std::cout << vertexes.size() << "\n";
 	glGenBuffersARB(1,&vertVbo);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
 	glBufferDataARB(GL_ARRAY_BUFFER_ARB,4*vertexes.size(),&vertexes[0],GL_STATIC_DRAW_ARB);

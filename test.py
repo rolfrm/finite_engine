@@ -29,7 +29,7 @@ vuv = uv;//vec2(0.5,0.5);
  normal.x *=-1;
  normal.y *=-1;
  normal = vec2(normal.x*cos(Rotation) - normal.y*sin(Rotation), normal.y*cos(Rotation)+ normal.x*sin(Rotation));
- gl_Position=vec4((npos)*0.02,0,1);
+ gl_Position=vec4((npos)*0.01,0,1);
  }
 """
 
@@ -109,21 +109,27 @@ def Render():
 		for i in objlist:
 			i.Draw()
 
-pc.setGravity(0.0,-0.0004)
+pc.setGravity(0.0,-0.004)
 
 for i in range(0,20):
-	AddObject(MakeBox(10.0,2.0,10.0,(0.1+0.3*i,-30.0 + 10*i)))
-b1 = MakeBox(10.0,2.0,10.0,(-1,20))
+	AddObject(MakeBox(10.0,2.0,10.0,(0.1+0.01*i,-30.0 + 10*i)))
+b1 = MakeBox(10.0,2.0,10.0,(-5,60))
 AddObject(b1)
-AddObject(MakeBox(10.0,1000.0,0.0,(1.0,-50.0)))
-
+AddObject(MakeBox(10.0,100.0,0.0,(0.0,-50.0)))
+AddObject(MakeBox(200.0,10.0,0.0,(-30.0,-15.0)))
+AddObject(MakeBox(200.0,10.0,0.0,(30.0, -15.0)))
 
 i = 0
-print 2
+#print 2
 while True:
 	try:
+		kev = gfw.GetKeyEvents()
+		for j in kev:
+			if j.key == 83 and j.action == 1:
+				b1.PhysicsObject.AddForce(0,10)
+				print "omg"
 		b1pos = b1.PhysicsObject.GetPosition()
-		print b1pos.x,b1pos.y
+		#print b1pos.x,b1pos.y
 		s1.SetUniform2f(b1pos.x,b1pos.y,"lightpos");
 		t = time.time()
 		Render()
@@ -131,7 +137,7 @@ while True:
 		gfw.Refresh()
 		
 		pc.Run()
-		print 1/(time.time()-t)
+		#print 1/(time.time()-t)
 		time.sleep(0.01)
 		
 	except KeyboardInterrupt as ke:

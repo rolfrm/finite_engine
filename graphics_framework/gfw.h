@@ -96,10 +96,18 @@ class Shader{
 	unsigned int ShaderProgram;
 };
 
+class KeyEvent{
+	public:
+	int key;
+	int action;
+};
+
 void Init(int width,int height, bool fullscreen);
 void DeInit();
 void Refresh();
 void Draw(float x, float y,float rotation, Drawable * poly);
+std::list<KeyEvent> GetKeyEvents();
+
 //void Zoom(float x,float y);
 
 
