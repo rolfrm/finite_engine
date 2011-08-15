@@ -196,6 +196,17 @@ void Shader::SetUniform1i(int value, const char * uniformname){
 		int loc = GetUniformLocation(uniformname);
 		glUniform1i(loc,value);
 	}
+void Shader::SetUniform3fv(float * data,unsigned int count, const char * uniformname){
+		int loc = GetUniformLocation(uniformname);
+		glUniform3fv(loc,count,data);
+}
+void Shader::SetUniform2fv(float * data,unsigned int count, const char * uniformname){
+		int loc = GetUniformLocation(uniformname);
+		glUniform2fv(loc,count,data);
+}
+
+
+
 unsigned int Shader::GetUniformLocation(const char * uniformname){
 	return glGetUniformLocation(ShaderProgram,uniformname);
 	}
@@ -345,4 +356,42 @@ Vec::Vec(){
 Vec::Vec(float x,float y){
 	X = x;
 	Y = y;
+	}
+
+Light::Light(float x, float y, float r, float g, float b, float i){
+	X = x;
+	Y = y;
+	R = r;
+	G = g;
+	B = b;
+	intensity = i;
+	}
+LightSystem::LightSystem(int nrChannels){
+	for(int i = 0 ; i< nrChannels;i++){
+		lights.push_back(Light(0,0,0,0,0,0));
+		}
+	}
+	
+void LightSystem::Activate(){
+	float * xydata = new float[lights.size()*2];
+	float * rgbdata = new float[lights.size()*3];
+	for(int i= 0; i < lights.size();i++){
+		xydata[i*2] = lights[i].X;
+		xydata[i*2+1] = lights[i].Y;
+		rgbdata[i*3] = lights[i].R;
+		rgbdata[i*3+1] = lights[i].G;
+		rgbdata[i*3+2] = lights[i].B;
+		}
+	ActiveShader.SetUniform2fv(xydata,lights.size(),"MultiLightPos");
+	ActiveShader.SetUniform3fv(rgbdata,lights.size(),"MultiLightColor");
+	ActiveShader.SetUniform1i(lights.size(),"NumLights");
+	delete []xydata;
+	delete []rgbdata;
+	
+	}
+Light * LightSystem::GetLight(int channel){
+		return &lights[channel];
+	}
+void LightSystem::SetLight(Light light, int channel){
+	lights[channel] = light;
 	}

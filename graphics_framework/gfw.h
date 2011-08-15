@@ -90,8 +90,9 @@ class Shader{
 	void SetUniform1f(float value,const char * uniformname);
 	void SetUniform2f(float v1,float v2,const char * uniformname);
 	void SetUniform3f(float v1, float v2, float v3,const char * uniformname);
-	
 	void SetUniform1i(int value, const char * uniformname);
+	void SetUniform2fv(float * data,unsigned int count, const char * uniformname);
+	void SetUniform3fv(float * data,unsigned int count, const char * uniformname);
 	
 	unsigned int ShaderProgram;
 };
@@ -128,6 +129,24 @@ void Zoom(float x,float y);
 
 void SetActiveShader(Shader);
 //void SetActiveFramebuffer(Framebuffer*);
-//void SetActiveTexture(Texture *);
+class Light{
+			public:
+				Light(float X, float Y, float R, float G, float B, float intensity);
+				float R,G,B;
+				float X,Y;
+				float intensity;
+};
+
+class LightSystem{
+		private:
+		std::vector<Light> lights;
+		
+		public:
+		LightSystem(int nrChannels);
+		void Activate();
+		Light * GetLight(int channel);
+		void SetLight(Light light, int channel);
+};
+
 
 
