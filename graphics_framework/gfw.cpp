@@ -21,29 +21,70 @@ void printLog(GLuint obj)
 		std::cout << infoLog << "\n";
 }
 
-std::list<KeyEvent> KeyEvents;
 
+
+
+std::list<KeyEvent> KeyEvents;
+std::list<MouseEvent> MouseEvents;
+float X;
+float Y;
+void GLFWCALL mouseposcallback(int x, int y){
+	X = x;
+	Y = y;
+}
 void GLFWCALL keycallback( int key, int action ){
 	KeyEvent newKeyEv;
 	newKeyEv.key = key;  
 	newKeyEv.action = action;
+	if(key < 255){
+		newKeyEv.charKey = (char)key;
+		}else{
+		newKeyEv.charKey = (char)-1;
+			}
 	KeyEvents.push_back(newKeyEv);
 }
+
+void GLFWCALL mousebuttoncallback(int button, int action){
+	MouseEvent mEv;
+	mEv.button = button;
+	mEv.action = action;
+	MouseEvents.push_back(mEv);
+	}
+
 std::list<KeyEvent> GetKeyEvents(){
 	std::list<KeyEvent> out = KeyEvents;
 	KeyEvents = std::list<KeyEvent>();
 	return out;
 	}
-
+std::list<MouseEvent> GetMouseEvents(){ 
+	std::list<MouseEvent> out = MouseEvents;
+	MouseEvents = std::list<MouseEvent>();
+	return out;
+	}
+Vec GetMousePos(){
+		Vec out;
+		out.X = X;
+		out.Y = Y;
+		return out;
+}
 Shader ActiveShader;
 void SetActiveShader(Shader s){
 		ActiveShader = s;
 		glUseProgram(s.ShaderProgram);
 }
 
+Vec currentZoomLevel;
+void Zoom(float x, float y){
+	currentZoomLevel.X = x;
+	currentZoomLevel.Y = y;
+	ActiveShader.SetUniform2f(x,y,"Zoom");
+	}
 
+Vec ScreenSize;
 void Init(int width,int height, bool fullscreen){
 	glfwInit();
+	ScreenSize.X = width;
+	ScreenSize.Y = height;
 	
 	if(fullscreen){
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_FULLSCREEN);
@@ -51,6 +92,8 @@ void Init(int width,int height, bool fullscreen){
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_WINDOW);
 	}
 	glfwSetKeyCallback(keycallback);
+	glfwSetMouseButtonCallback(mousebuttoncallback);
+	glfwSetMousePosCallback(mouseposcallback);
 	std::cout << "Window opened\n";
 	
 	std::cout << "setting stuff.\n";
@@ -65,8 +108,20 @@ void Init(int width,int height, bool fullscreen){
 	}
 }
 
-
-
+Vec ScreenToWorldCoordinates(Vec in){
+		Vec out;
+		
+		std::cout << in.Y <<" " << 2*(in.Y/ScreenSize.Y - 0.5) << "\n";
+		out.X = currentZoomLevel.X*(in.X/ScreenSize.X - 0.5)*2;
+		out.Y = -currentZoomLevel.Y*(in.Y/ScreenSize.Y - 0.5)*2;
+		return out;
+}
+Vec WorldToScreenCoordinates(Vec in){
+	Vec out;
+	out.X = (in.X/currentZoomLevel.X+1)*ScreenSize.X/2;
+	out.Y = -(in.Y/currentZoomLevel.Y+1)*ScreenSize.Y/2;
+	return out;
+	}
 void Refresh(){
 		glfwSwapBuffers();
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -281,4 +336,13 @@ void Polygon::Draw(){
 		glDisableVertexAttribArray(uvAttribLoc);
 		}
 	
+	}
+	
+Vec::Vec(){
+	X = 0;
+	Y = 0;
+	}
+Vec::Vec(float x,float y){
+	X = x;
+	Y = y;
 	}

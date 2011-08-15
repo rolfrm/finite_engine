@@ -96,20 +96,35 @@ class Shader{
 	unsigned int ShaderProgram;
 };
 
-class KeyEvent{
-	public:
+struct KeyEvent{
 	int key;
+	char charKey;
 	int action;
 };
 
+struct MouseEvent{
+	int button;
+	int action;
+};
+
+class Vec{
+	public:
+	Vec();
+	Vec(float x,float y);
+ float X;
+ float Y;	
+};
+
+Vec ScreenToWorldCoordinates(Vec in);
+Vec WorldToScreenCoordinates(Vec in);
 void Init(int width,int height, bool fullscreen);
 void DeInit();
 void Refresh();
 void Draw(float x, float y,float rotation, Drawable * poly);
 std::list<KeyEvent> GetKeyEvents();
-
-//void Zoom(float x,float y);
-
+std::list<MouseEvent> GetMouseEvents();
+Vec GetMousePos();
+void Zoom(float x,float y);
 
 void SetActiveShader(Shader);
 //void SetActiveFramebuffer(Framebuffer*);

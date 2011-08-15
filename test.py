@@ -2,11 +2,10 @@ import physics
 import gfw
 import time
 import numpy
-gfw.Init(1000,1000,False)
-
-
+gfw.Init(500,700,False)
 vs = """
 uniform sampler2D tex0;
+uniform vec2 Zoom;
 attribute vec2 pos; 
 attribute vec3 color;
 attribute vec2 uv;
@@ -29,7 +28,7 @@ vuv = uv;//vec2(0.5,0.5);
  normal.x *=-1;
  normal.y *=-1;
  normal = vec2(normal.x*cos(Rotation) - normal.y*sin(Rotation), normal.y*cos(Rotation)+ normal.x*sin(Rotation));
- gl_Position=vec4((npos)*0.01,0,1);
+ gl_Position=vec4((npos)/Zoom,0,1);
  }
 """
 
@@ -55,7 +54,7 @@ gl_FragColor= vec4(col*min(1,amb)*1 + diffCol*0.5,1);
 
 s1 = gfw.Shader(vs,fs)
 gfw.SetActiveShader(s1);
-
+gfw.Zoom(50,50)
 class GameObject:
 	def __init__(self,physicsObject,graphicsobject):
 		self.PhysicsObject = physicsObject
@@ -94,7 +93,7 @@ def MakeBox(sizex, sizey,mass,position):
 	color = numpy.array([0,1,1, 1,0,1, 1,1,0, 1,1,1],dtype=numpy.float32)
 	uv = numpy.array([0,0,1,0,1,1,0,1],dtype=numpy.float32)
 	go = GameObject(o1 ,gfw.Polygon(v.tostring(),len(v),indices.tostring(),len(indices),color.tostring(),len(color),uv.tostring(),len(uv)))
-	go.GraphicsObject.AddTexture(tex,0)
+	#go.GraphicsObject.AddTexture(tex,0)
 	#go.o1 = o1
 	#go.p1 = p1
 	return go
@@ -120,16 +119,23 @@ AddObject(MakeBox(200.0,10.0,0.0,(-30.0,-15.0)))
 AddObject(MakeBox(200.0,10.0,0.0,(30.0, -15.0)))
 
 i = 0
-#print 2
 while True:
 	try:
 		kev = gfw.GetKeyEvents()
 		for j in kev:
-			if j.key == 83 and j.action == 1:
-				b1.PhysicsObject.AddForce(0,10)
-				print "omg"
+			if j.charKey == 'A' and j.action == 1:
+				b1.PhysicsObject.AddForce(-10,0)
+			if j.charKey == 'S' and j.action == 1:
+				b1.PhysicsObject.AddForce(10,0)
+		mev = gfw.GetMouseEvents()
+		for j in mev:
+			vpos = gfw.ScreenToWorldCoordinates(gfw.GetMousePos())
+			print vpos.X,vpos.Y
+			if j.action == 1:
+				AddObject(MakeBox(10.0,2.0,10.0,(vpos.X,vpos.Y)))
+			print j.button
+			print j.action
 		b1pos = b1.PhysicsObject.GetPosition()
-		#print b1pos.x,b1pos.y
 		s1.SetUniform2f(b1pos.x,b1pos.y,"lightpos");
 		t = time.time()
 		Render()
