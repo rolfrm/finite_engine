@@ -25,10 +25,10 @@ vuv = uv;//vec2(0.5,0.5);
  vec2 npos = vec2(pos.x*cos(Rotation) - pos.y*sin(Rotation), pos.y*cos(Rotation)+ pos.x*sin(Rotation))+vec2(Xoff,Yoff);
  lightDir = npos-lightpos;
  normal = uv - vec2(0.5,0.5);
- normal.x *=-1;
- normal.y *=-1;
+ normal.x *=-1.0;
+ normal.y *=-1.0;
  normal = vec2(normal.x*cos(Rotation) - normal.y*sin(Rotation), normal.y*cos(Rotation)+ normal.x*sin(Rotation));
- gl_Position=vec4((npos)/Zoom,0,1);
+ gl_Position=vec4((npos)/Zoom,0.0,1.0);
  }
 """
 
@@ -44,11 +44,11 @@ void main(){
 	vec3 tex = texture2D(tex0,vuv).xyz;
 	vec3 col = vColor;
 	col +=  tex;
-	float amb = 1/(length(lightDir)/5);
-	float diff = max(dot(normalize(normal),normalize(lightDir)),0)*1/(length(lightDir)/5);;
+	float amb = 1.0/(length(lightDir)/5.0);
+	float diff = max(dot(normalize(normal),normalize(lightDir)),0.0)*1.0/(length(lightDir)/5.0);
 	vec3 diffCol = diff*col;
 	
-gl_FragColor= vec4(col*min(1,amb)*1 + diffCol*0.5,1);
+gl_FragColor= vec4(col*min(1.0,amb)*1.0 + diffCol*0.5,1.0);
 }
 """
 
@@ -73,8 +73,8 @@ tex = gfw.Texture(noise.tostring(),16,16)
 
 
 def MakeBox(sizex, sizey,mass,position):
-	sx = sizey/3
-	sy = sizex/3
+	sx = sizey/2
+	sy = sizex/2
 	px = position[0]
 	py = position[1]
 	
@@ -110,9 +110,9 @@ def Render():
 
 pc.setGravity(0.0,-0.004)
 
-for i in range(0,20):
-	AddObject(MakeBox(10.0,2.0,10.0,(0.1+0.01*i,-30.0 + 10*i)))
-b1 = MakeBox(10.0,2.0,10.0,(-5,60))
+for i in range(0,3):
+	AddObject(MakeBox(10.0,10.0,10.0,(0.1+0.01*i,-30.0 + 10*i)))
+b1 = MakeBox(10.0,2.0,10.0,(-10,60))
 AddObject(b1)
 AddObject(MakeBox(10.0,100.0,0.0,(0.0,-50.0)))
 AddObject(MakeBox(200.0,10.0,0.0,(-30.0,-15.0)))
@@ -124,9 +124,11 @@ while True:
 		kev = gfw.GetKeyEvents()
 		for j in kev:
 			if j.charKey == 'A' and j.action == 1:
-				b1.PhysicsObject.AddForce(-10,0)
-			if j.charKey == 'S' and j.action == 1:
-				b1.PhysicsObject.AddForce(10,0)
+				b1.PhysicsObject.AddForce(-5,0)
+			if j.charKey == 'W' and j.action == 1:
+				b1.PhysicsObject.AddForce(0,5)
+			if j.charKey == 'D' and j.action == 1:
+				b1.PhysicsObject.AddForce(5,0)
 		mev = gfw.GetMouseEvents()
 		for j in mev:
 			vpos = gfw.ScreenToWorldCoordinates(gfw.GetMousePos())
