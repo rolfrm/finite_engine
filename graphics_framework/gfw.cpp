@@ -36,6 +36,7 @@ void Init(int width,int height, bool fullscreen){
 	std::cout << "Window opened\n";
 	
 	std::cout << "setting stuff.\n";
+	glLoadIdentity();
 	glPointSize(3);
 	glColor4f(1,1,1,1);
 	
