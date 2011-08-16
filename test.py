@@ -118,8 +118,7 @@ def MakeBox(sizex, sizey,mass,position):
 	uv = numpy.array([0,0,1,0,1,1,0,1],dtype=numpy.float32)
 	go = GameObject(o1 ,gfw.Polygon(v.tostring(),len(v),indices.tostring(),len(indices),color.tostring(),len(color),uv.tostring(),len(uv)))
 	go.GraphicsObject.AddTexture(tex,0)
-	#go.o1 = o1
-	#go.p1 = p1
+
 	return go
 
 
