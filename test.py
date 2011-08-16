@@ -69,8 +69,12 @@ void main(){
 		ncol += col*(min(1.0,namb) + ndiff*0.5)*MultiLightColor[i]*MultiLightIntensity[i]; 
 	}
 	
-	
-gl_FragColor= vec4(ncol,tex.a);
+	if(tex != 0){
+		gl_FragColor= vec4(ncol,tex.a);
+	}else{
+	gl_FragColor= vec4(ncol,1);
+
+	}
 }
 """
 
@@ -117,7 +121,7 @@ def MakeBox(sizex, sizey,mass,position):
 	color = numpy.array([1,1,1, 1,1,1, 1,1,1, 1,1,1],dtype=numpy.float32)
 	uv = numpy.array([0,0,1,0,1,1,0,1],dtype=numpy.float32)
 	go = GameObject(o1 ,gfw.Polygon(v.tostring(),len(v),indices.tostring(),len(indices),color.tostring(),len(color),uv.tostring(),len(uv)))
-	go.GraphicsObject.AddTexture(tex,0)
+	#go.GraphicsObject.AddTexture(tex,0)
 
 	return go
 
@@ -142,7 +146,7 @@ ls.GetLight(3).R = 1
 ls.GetLight(4).G = 1
 
 for i in range(0,5):
-	ls.GetLight(i).intensity = 1.0/(1.0+i)
+	ls.GetLight(i).intensity = 1#1.0/(1.0+i)
 
 for i in range(0,3):
 	AddObject(MakeBox(10.0,10.0,10.0,(0.1+0.01*i,-30.0 + 10*i)))

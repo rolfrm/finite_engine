@@ -100,7 +100,7 @@ void Init(int width,int height, bool fullscreen){
 	glLoadIdentity();
 	glPointSize(3);
 	glColor4f(1,1,1,1);
-	glClearColor(0.9,0.9,1,1);
+	glClearColor(0,0,0,1);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
@@ -252,12 +252,14 @@ void Drawable::AddTexture(Texture * tex,int textureChannel){
 
 void Drawable::ActivateTextures(){
 	for(int i = 0; i < 2;i++){
+			glActiveTexture(GL_TEXTURE0 + i);
 			if(boundTextures[i] != NULL){
-				glActiveTexture(GL_TEXTURE0 + i);
 				glBindTexture(GL_TEXTURE_2D, boundTextures[i]->GetGLTexture());
 				char buf[10];
 				sprintf(buf,"tex%i",i);
 				ActiveShader.SetUniform1i(i,buf);
+			}else{
+				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 	}
 }
