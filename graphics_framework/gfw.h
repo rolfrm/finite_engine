@@ -11,13 +11,14 @@ class Vec3{
 };*/
 class Texture{
 	public:
-	Texture(char * data, int width, int height);
+	Texture(char* data, int width, int height, int colorChannels);
 	
 	unsigned int GetGLTexture();
 	private:
-	unsigned char * data;
+	float * data;
 	int width;
 	int height;
+	int ColorChannels;
 	unsigned int gltex;
 	
 };
@@ -91,8 +92,10 @@ class Shader{
 	void SetUniform2f(float v1,float v2,const char * uniformname);
 	void SetUniform3f(float v1, float v2, float v3,const char * uniformname);
 	void SetUniform1i(int value, const char * uniformname);
+	void SetUniform1fv(float * data, unsigned int count, const char * uniformname);
 	void SetUniform2fv(float * data,unsigned int count, const char * uniformname);
 	void SetUniform3fv(float * data,unsigned int count, const char * uniformname);
+	void SetUniform1iv(int * data, unsigned int count, const char * uniformname);
 	
 	unsigned int ShaderProgram;
 };

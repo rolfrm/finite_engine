@@ -16,6 +16,7 @@ uniform vec3 Color;
 uniform vec2 lightpos;
 #define MAX_LIGHTS 5
 uniform vec2 MultiLightPos[MAX_LIGHTS];
+uniform float MultiLightIntensity[MAX_LIGHTS];
 
 uniform int NumLights;
 varying vec3 vColor;
@@ -23,7 +24,6 @@ varying vec2 vuv;
 varying vec2 lightDir;
 varying vec2 normal;
 varying vec2 vMultiLightDir[MAX_LIGHTS];
-
 
 void main(){
 vColor = color;
@@ -52,27 +52,25 @@ varying vec2 vuv;
 varying vec2 lightDir;
 #define MAX_LIGHTS 5
 
+uniform float MultiLightIntensity[MAX_LIGHTS];
 varying vec2 vMultiLightDir[MAX_LIGHTS];
 uniform vec3 MultiLightColor[MAX_LIGHTS];
 uniform int NumLights;
 varying vec2 normal;
 void main(){
 
-	vec3 tex = texture2D(tex0,vuv).xyz;
+	vec4 tex = texture2D(tex0,vuv);
 	vec3 col = vColor;
-	col +=  tex;
-	float amb = 1.0/(length(lightDir)/5.0);
-	float diff = max(dot(normalize(normal),normalize(lightDir)),0.0)*1.0/(length(lightDir)/5.0);
+	col +=  tex.xyz;
 	vec3 ncol = vec3(0,0,0);
 	for(int i =0; i< NumLights;i++){
 		 float namb = 1.0/(length(vMultiLightDir[i])/5.0);
 		 float ndiff = max(dot(normalize(normal),normalize(vMultiLightDir[i])),0.0)*1.0/(length(vMultiLightDir[i])/5.0);
-		ncol += col*(min(1.0,namb) + ndiff*0.5)*MultiLightColor[i]; 
+		ncol += col*(min(1.0,namb) + ndiff*0.5)*MultiLightColor[i]*MultiLightIntensity[i]; 
 	}
 	
-	vec3 diffCol = diff*col;
 	
-gl_FragColor= vec4(ncol,0);//vec4(col*min(1.0,amb)*1.0 + diffCol*0.5,1.0);
+gl_FragColor= vec4(ncol,tex.a);
 }
 """
 
@@ -92,9 +90,11 @@ class GameObject:
 		gfw.Draw(pos.x,pos.y,angle,self.GraphicsObject)
 	
 
-noise = (numpy.random.random(128*3)*255).astype(numpy.uint8)
-tex = gfw.Texture(noise.tostring(),16,16)
+noise = (numpy.random.random(16*16*4)).astype(numpy.float32)
+#noise = numpy.ones(16*16*4,dtype=numpy.float32)*0.5
 
+tex = gfw.Texture(noise.tostring(),16,16,4)
+print noise
 
 def MakeBox(sizex, sizey,mass,position):
 	sx = sizey/2
@@ -117,7 +117,7 @@ def MakeBox(sizex, sizey,mass,position):
 	color = numpy.array([1,1,1, 1,1,1, 1,1,1, 1,1,1],dtype=numpy.float32)
 	uv = numpy.array([0,0,1,0,1,1,0,1],dtype=numpy.float32)
 	go = GameObject(o1 ,gfw.Polygon(v.tostring(),len(v),indices.tostring(),len(indices),color.tostring(),len(color),uv.tostring(),len(uv)))
-	#go.GraphicsObject.AddTexture(tex,0)
+	go.GraphicsObject.AddTexture(tex,0)
 	#go.o1 = o1
 	#go.p1 = p1
 	return go
@@ -134,13 +134,17 @@ def Render():
 
 pc.setGravity(0.0,-0.004)
 
-ls = gfw.LightSystem(5);
+ls = gfw.LightSystem(5)
 
-ls.GetLight(0).R = 1;
-ls.GetLight(1).G = 1;
-ls.GetLight(2).B = 1;
-ls.GetLight(3).R = 1;
-ls.GetLight(4).G = 1;
+ls.GetLight(0).R = 1
+ls.GetLight(1).G = 1
+ls.GetLight(2).B = 1
+ls.GetLight(3).R = 1
+ls.GetLight(4).G = 1
+
+for i in range(0,5):
+	ls.GetLight(i).intensity = 1.0/(1.0+i)
+
 for i in range(0,3):
 	AddObject(MakeBox(10.0,10.0,10.0,(0.1+0.01*i,-30.0 + 10*i)))
 b1 = MakeBox(10.0,2.0,10.0,(-10,20))
