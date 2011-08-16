@@ -100,6 +100,9 @@ void Init(int width,int height, bool fullscreen){
 	glLoadIdentity();
 	glPointSize(3);
 	glColor4f(1,1,1,1);
+	glClearColor(0,0,0,1);
+	glEnable(GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
@@ -138,23 +141,36 @@ void Draw(float x,float y, float rotation, Drawable* drw){
 	drw->Draw();
 }
 
-Texture::Texture(char* data, int width, int height){
-	this->data = (unsigned char*)data;
+Texture::Texture(char* data, int width, int height, int colorChannels){
+	this->data = (float*)data;
 	this->width = width;
 	this->height = height;
+	ColorChannels = colorChannels;
 	gltex = -1;
+	gltex = GetGLTexture();
 		
 	}
 unsigned int Texture::GetGLTexture(){
 	if(gltex == (unsigned int)-1){
-		
+		int glCol;
+		if(ColorChannels == 3){
+			glCol = GL_RGB;
+		}else if(ColorChannels == 4){
+			glCol = GL_RGBA;
+		}else{
+			glCol = GL_INTENSITY;
+			}
+		for(int i = 0; i < width*height*4;i+=4){
+			std::cout << i << ":" << data[i] << " " << data[i+1] << " " << data[i+2] << " " << data[i+3] << "\n";
+			}
 		glGenTextures(1,&gltex);
 		glBindTexture(GL_TEXTURE_2D, gltex);
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,this->width,this->height,0,GL_RGB,GL_UNSIGNED_BYTE,data);
+		
+		glTexImage2D(GL_TEXTURE_2D,0,ColorChannels,this->width,this->height,0,glCol,GL_FLOAT,data);
 	}
 	return gltex;
 	
@@ -196,6 +212,24 @@ void Shader::SetUniform1i(int value, const char * uniformname){
 		int loc = GetUniformLocation(uniformname);
 		glUniform1i(loc,value);
 	}
+void Shader::SetUniform3fv(float * data,unsigned int count, const char * uniformname){
+		int loc = GetUniformLocation(uniformname);
+		glUniform3fv(loc,count,data);
+}
+void Shader::SetUniform2fv(float * data,unsigned int count, const char * uniformname){
+		int loc = GetUniformLocation(uniformname);
+		glUniform2fv(loc,count,data);
+}
+
+void Shader::SetUniform1iv(int * data, unsigned int count, const char * uniformname){
+	int loc = GetUniformLocation(uniformname);
+	glUniform1iv(loc,count,data);
+	}
+void Shader::SetUniform1fv(float * data, unsigned int count, const char * uniformname){
+	int loc = GetUniformLocation(uniformname);
+	glUniform1fv(loc,count,data);
+	}
+
 unsigned int Shader::GetUniformLocation(const char * uniformname){
 	return glGetUniformLocation(ShaderProgram,uniformname);
 	}
@@ -218,12 +252,14 @@ void Drawable::AddTexture(Texture * tex,int textureChannel){
 
 void Drawable::ActivateTextures(){
 	for(int i = 0; i < 2;i++){
+			glActiveTexture(GL_TEXTURE0 + i);
 			if(boundTextures[i] != NULL){
-				glActiveTexture(GL_TEXTURE0 + i);
 				glBindTexture(GL_TEXTURE_2D, boundTextures[i]->GetGLTexture());
 				char buf[10];
 				sprintf(buf,"tex%i",i);
 				ActiveShader.SetUniform1i(i,buf);
+			}else{
+				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 	}
 }
@@ -345,4 +381,46 @@ Vec::Vec(){
 Vec::Vec(float x,float y){
 	X = x;
 	Y = y;
+	}
+
+Light::Light(float x, float y, float r, float g, float b, float i){
+	X = x;
+	Y = y;
+	R = r;
+	G = g;
+	B = b;
+	intensity = i;
+	}
+LightSystem::LightSystem(int nrChannels){
+	for(int i = 0 ; i< nrChannels;i++){
+		lights.push_back(Light(0,0,0,0,0,0));
+		}
+	}
+	
+void LightSystem::Activate(){
+	float * xydata = new float[lights.size()*2];
+	float * rgbdata = new float[lights.size()*3];
+	float * idata = new float[lights.size()];
+	for(int i= 0; i < lights.size();i++){
+		xydata[i*2] = lights[i].X;
+		xydata[i*2+1] = lights[i].Y;
+		rgbdata[i*3] = lights[i].R;
+		rgbdata[i*3+1] = lights[i].G;
+		rgbdata[i*3+2] = lights[i].B;
+		idata[i] = lights[i].intensity;
+		}
+	ActiveShader.SetUniform2fv(xydata,lights.size(),"MultiLightPos");
+	ActiveShader.SetUniform3fv(rgbdata,lights.size(),"MultiLightColor");
+	ActiveShader.SetUniform1fv(idata,lights.size(),"MultiLightIntensity");
+	ActiveShader.SetUniform1i(lights.size(),"NumLights");
+	
+	delete []xydata;
+	delete []rgbdata;
+	
+	}
+Light * LightSystem::GetLight(int channel){
+		return &lights[channel];
+	}
+void LightSystem::SetLight(Light light, int channel){
+	lights[channel] = light;
 	}
