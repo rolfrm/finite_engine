@@ -2,6 +2,7 @@ import physics
 import gfw
 import time
 import numpy
+import random
 gfw.Init(500,700,False)
 vs = """
 uniform sampler2D tex0;
@@ -139,13 +140,12 @@ pc.setGravity(0.0,-0.004)
 
 ls = gfw.LightSystem(5)
 
-ls.GetLight(0).R = 1
-ls.GetLight(1).G = 1
-ls.GetLight(2).B = 1
-ls.GetLight(3).R = 1
-ls.GetLight(4).G = 1
+
 
 for i in range(0,5):
+	ls.GetLight(i).R = random.random()
+	ls.GetLight(i).G = random.random()
+	ls.GetLight(i).B = random.random()
 	ls.GetLight(i).intensity = 1#1.0/(1.0+i)
 
 for i in range(0,3):
