@@ -66,7 +66,7 @@ void main(){
 	col +=  tex.xyz;
 	vec3 ncol = vec3(0.0,0.0,0.0);
 	for(int i =0; i< NumLights;i++){
-		 float namb = 0.0;//1.0/(length(vMultiLightDir[i]));
+		 float namb = 1.0/(length(vMultiLightDir[i]));
 		 float ndiff = max(dot(normalize(normal),normalize(vMultiLightDir[i])),0.0)*1.0/(length(vMultiLightDir[i])/5.0);
 		ncol += col*(min(1.0,namb) + ndiff*0.5)*MultiLightColor[i]*MultiLightIntensity[i]; 
 	}
