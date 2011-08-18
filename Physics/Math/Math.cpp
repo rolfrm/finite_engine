@@ -9,7 +9,6 @@
 #include <math.h>
 #include <iostream>
 
-namespace Dormir{
 
 	Vec2::Vec2(){
 		Vec2(0,0);
@@ -67,4 +66,3 @@ namespace Dormir{
 	}
 
 
-}

@@ -8,7 +8,6 @@
 #ifndef MATH_HPP_
 #define MATH_HPP_
 
-namespace Dormir{
 
 
 
@@ -38,6 +37,5 @@ namespace Dormir{
 	};
 
 	double Crossproduct(Vec2,Vec2);
-}
 
 #endif /* MATH_HPP_ */
