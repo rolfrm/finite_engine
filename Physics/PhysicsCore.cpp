@@ -8,7 +8,6 @@
 
 
 
-#include "../Dare/Factory.hpp"
 
 namespace Dormir{
 	Core::Core(unsigned int nMaxNodes){
