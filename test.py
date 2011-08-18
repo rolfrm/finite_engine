@@ -72,7 +72,7 @@ void main(){
 	}
 	ncol += globalColor;
 	//if(tex != 0){
-		gl_FragColor= vec4(ncol,1);
+		gl_FragColor= vec4(ncol,1.0);
 	//}else{
 	//gl_FragColor= vec4(ncol,1.0);
 
@@ -154,12 +154,12 @@ class man:
 		self.y = y
 		self.pobj = MakePhysicsBox(5,5,10,(x,y))
 		self.pobj.setRestitution(0)
-		print self.pobj.SetInertia(0)
+		#print self.pobj.SetInertia(0)
 	def Draw(self):
 		xy = self.pobj.GetPosition()
 		self.x = xy.x
 		self.y = xy.y
-		self.pobj.SetInertia(0)
+		#self.pobj.SetInertia(0)
 		gfw.Draw(self.x,self.y,self.pobj.GetAngle(),self.body)
 		gfw.Draw(self.x,self.y+3,0,self.head)
 		gfw.Draw(self.x+3,self.y+1,0,self.foot)
