@@ -72,7 +72,7 @@ void main(){
 	}
 	ncol += globalColor;
 	//if(tex != 0){
-		gl_FragColor= vec4(ncol,1);
+		gl_FragColor= vec4(ncol,1.0);
 	//}else{
 	//gl_FragColor= vec4(ncol,1.0);
 
