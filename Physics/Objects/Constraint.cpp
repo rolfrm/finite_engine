@@ -8,12 +8,18 @@
 #include "Constraint.hpp"
 #include "PhysicsObject.h"
 #include <math.h>
+#include <iostream>
 
 namespace Dormir{
 
 	void Fixpoint::Rotate(double angle){
 		double cos0=cos(angle),sin0=sin(angle);
 		P.SetValue(cos0*P.x-sin0*P.y,sin0*P.x+cos0*P.y);
+	}
+
+	void Fixpoint::setPhysicsObject(PhysicsObject * O){
+		Obj=O;
+		//O->AttachPoint(this);
 	}
 
 	Spring::Spring(double springconstant,double dampening,double rest){
@@ -26,16 +32,16 @@ namespace Dormir{
 	}
 
 	void Spring::ApplyForce(){
-		if(O1!=NULL && O2!=NULL){
-			Vec2 v=O2->GetPosition()-O1->GetPosition();
+		if(F[0].getPhysicsObject()!=NULL && F[1].getPhysicsObject()!=NULL){
+			Vec2 v=F[1].getPos()+F[1].getPhysicsObject()->GetPosition()-F[0].getPos()-F[0].getPhysicsObject()->GetPosition();
 			double vl=v.GetNorm2();
 			v/=vl;
 			vl-=x;
-			v=v*vl*k-(O1->GetVelocity()-O2->GetVelocity())*d;
-			O1->AddForce(v);
-			O2->AddForce(v*(-1));
+			v=v*vl*k;//-v*d*((F[1].getPhysicsObject()->GetVelocity()-F[0].getPhysicsObject()->GetVelocity())*v);
+			std::cout<<"spring force ("<<v.x<<","<<v.y<<")\n";
+			F[1].getPhysicsObject()->AddForce(v*(-1),F[1].getPos());
+			F[0].getPhysicsObject()->AddForce(v,F[0].getPos());
 		}
-
 	}
 
 	SingleSprint::SingleSprint(double springconstant,double dampening,double rest){

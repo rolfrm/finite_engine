@@ -34,6 +34,7 @@ namespace Dormir{
 		PhysicsObject(Vec2 Pos,double e,double mu,double mass);
 		PhysicsObject(Vec2 Pos,double e,double mu);
 		PhysicsObject(Vec2);
+		PhysicsObject(double mass,double e,double mu);
 		PhysicsObject();
 
 		void Advance();
@@ -48,6 +49,7 @@ namespace Dormir{
 		void AddTorque(double T){angleSpeed+=T*invInertia;};
 
 		bool LoadPolygon(Dormir::Polygon P);
+		void LoadPolygonList(std::list<Polygon>);
 		bool AttachPoint(Fixpoint * F);
 		bool DetachPoint(Fixpoint * F);
 		void DeleteBody();
@@ -62,6 +64,7 @@ namespace Dormir{
 		Vec2 GetVelocity(){return Vel;};
 		Vec2 GetPosition(){return Pos;};
 		void setMass(double newMass);
+		void setInertia(double newInertia);
 		void setRestitution(double newE){e=newE;};
 		void setFriction(double newMu){mu=newMu;};
 		void setAnglespeed(double a){angleSpeed=a;};

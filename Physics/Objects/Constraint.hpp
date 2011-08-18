@@ -19,7 +19,7 @@ class Fixpoint{
 public:
 	Fixpoint(){};
 
-	void setPhysicsObject(PhysicsObject * O){Obj=O;};
+	void setPhysicsObject(PhysicsObject * O);
 	PhysicsObject * getPhysicsObject(){return Obj;};
 
 	void SetPos(Vec2 V){P=V;};
@@ -45,12 +45,10 @@ public:
 
 	void ApplyForce();
 
-	void SetFirstObject(Dormir::PhysicsObject * nO1){O1=nO1;};
-	void SetSecondObject(Dormir::PhysicsObject * nO2){O2=nO2;};
 
-private:
+//private:
 	double k,d,x;
-	Dormir::PhysicsObject * O1, * O2;
+	Fixpoint F[2];
 };
 
 
@@ -84,10 +82,11 @@ private:
 
 class Joint{
 public:
-	Joint(){};
+	Joint(){v_bias=0.2;};
 
 	Fixpoint P[2];
 	double v_bias,slop;
+	Vec2 AccummulatedImpulse;
 };
 
 

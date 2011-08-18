@@ -6,6 +6,10 @@
 #include <math.h>
 #include <iostream>
 
+
+
+#include "../Dare/Factory.hpp"
+
 namespace Dormir{
 	Core::Core(unsigned int nMaxNodes){
 		CollisionDetecter=new SeperatingAxis(this);
@@ -68,6 +72,8 @@ namespace Dormir{
 			K1[i]=k-(r.x*r.x*O->GetInverseInertia()+r2.x*r2.x*O2->GetInverseInertia());
 			K2[i]=-(r.x*r.y*O->GetInverseInertia()+r2.x*r2.y*O2->GetInverseInertia());
 			K3[i]=k-(r.y*r.y*O->GetInverseInertia()+r2.y*r2.y*O2->GetInverseInertia());
+			//O->AddForce(Joints[i]->AccummulatedImpulse,r);
+			//O2->AddForce(Joints[i]->AccummulatedImpulse*(-1),r2);
 			//std::cout<<"constants "<<O2->GetInverseMass()<<" "<<O2->GetInverseInertia()<<"\n";
 		//	std::cout<<"booze "<<k<<" "<<K1[i]<<" "<<K2[i]<<" "<<K3[i]<<"\n";
 		//	J[i]=CalculateImpulseCoeffiecient(Joints[i])
@@ -91,6 +97,8 @@ namespace Dormir{
 		for(unsigned int l=0;l<30;l++){
 			double N=0;
 
+
+
 			for(unsigned int i=0;i<allocatedNodes;i++){
 				double vbias=biasOverlap*Max(0,Nodes[i].intersection-slopOverlap);
 				double P=(-CalculateRelativeVelocity(Nodes[i].axis,Nodes[i].rf,Nodes[i].rt,Nodes[i].from,Nodes[i].to)+vbias)/A[i];
@@ -112,27 +120,28 @@ namespace Dormir{
 				Nodes[i].from->AddForce(Nodes[i].tangent*-(Nodes[i].T-tempT),Nodes[i].rf);
 
 			}
+			for(unsigned int i=0;i<Joints.size();i++){
+				double k1=K1[i],k2=K2[i],k3=K3[i];
+				PhysicsObject * O=Joints[i]->P[0].getPhysicsObject(),* O2=Joints[i]->P[1].getPhysicsObject();
+				Vec2 P,dv=O->GetVelocity(),r=Joints[i]->P[0].getPos(),r2=Joints[i]->P[1].getPos();
+				dv+=Vec2(-O->GetAnglespeed()*r.y,O->GetAnglespeed()*r.x);
+				dv-=O2->GetVelocity();
+				dv-=Vec2(-O2->GetAnglespeed()*r2.y,O2->GetAnglespeed()*r2.x);
+				Vec2 dP=O->GetPosition()+Joints[i]->P[0].getPos()-O2->GetPosition()-Joints[i]->P[1].getPos();
+				dP*=-Joints[i]->v_bias;
+				dv-=dP;
+				P.y=(-dv.y+dv.x*k2/k1)/(k3-k2*k2/k1);
+				P.x=-(dv.x+P.y*k2)/k1;
+				O->AddForce(P,r);
+				O2->AddForce(P*(-1),r2);
+				Joints[i]->AccummulatedImpulse+=P;
+				N+=P.GetNorm2();
+			}
 
 			N/=allocatedNodes;
 			if(N<1e-7){
 				break;
 			}
-		}
-
-		for(unsigned int i=0;i<Joints.size();i++){
-			double k1=K1[i],k2=K2[i],k3=K3[i];
-			PhysicsObject * O=Joints[i]->P[0].getPhysicsObject(),* O2=Joints[i]->P[1].getPhysicsObject();
-			Vec2 P,dv=O->GetVelocity(),r=Joints[i]->P[0].getPos(),r2=Joints[i]->P[1].getPos();
-			dv+=Vec2(-O->GetAnglespeed()*r.y,O->GetAnglespeed()*r.x);
-			Vec2 dP=O->GetPosition()+Joints[i]->P[0].getPos()-O2->GetPosition()-Joints[i]->P[1].getPos();
-			std::cout<<"vbias "<<dP.x<<" "<<dP.y<<"\n";
-			dP*=-Joints[i]->v_bias;
-			dv-=dP;
-			P.y=(-dv.y+dv.x*k2/k1)/(k3-k2*k2/k1);
-			P.x=-(dv.x+P.y*k2)/k1;
-			O->AddForce(P,r);
-			O2->AddForce(P*(-1),r2);
-			std::cout<<"result for joint ("<<P.x<<","<<P.y<<")\n";
 		}
 
 		allocatedImpulseNodes=0;

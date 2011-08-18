@@ -2,6 +2,7 @@
 #include "Constraint.hpp"
 #include "../Shapes/Polygon.h"
 #include <math.h>
+#include <iostream>
 
 namespace Dormir{
 
@@ -25,6 +26,16 @@ namespace Dormir{
 		PhysicsObject(StartPos,0,0,0);
 	}
 
+	PhysicsObject::PhysicsObject(double nMass,double nE,double nMu){
+		Pos.SetValue(0,0);
+		Vel.SetValue(0,0);
+		angle=0;
+		angleSpeed=0;
+		setRestitution(nE);
+		setFriction(nMu);
+		setMass(nMass);
+	}
+
 	PhysicsObject::PhysicsObject(){
 		Pos.SetValue(0,0);
 		Vel.SetValue(0,0);
@@ -44,6 +55,15 @@ namespace Dormir{
 		mass=newMass;
 	}
 
+	void PhysicsObject::setInertia(double newIertia){
+		if(newIertia!=0)
+			invInertia=1/invInertia;
+		else
+			invInertia=0;
+
+		inertia=newIertia;
+	}
+
 	bool PhysicsObject::LoadPolygon(Dormir::Polygon P){
 		if(P.Vertex.size()==0)
 			return false;
@@ -53,6 +73,12 @@ namespace Dormir{
 
 		Body.push_back(P);
 		return true;
+	}
+
+	void PhysicsObject::LoadPolygonList(std::list<Polygon> Plist){
+		for(std::list<Polygon>::iterator it=Plist.begin();it!=Plist.end();it++){
+			LoadPolygon(*it);
+		}
 	}
 
 	void PhysicsObject::DeleteBody(){
