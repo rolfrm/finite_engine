@@ -77,7 +77,7 @@ def squareStep(curmap,scaling):
 
 Map = numpy.zeros((7,7))
 Map[2][2] = 5
-for i in range(0,6):
+for i in range(0,4):
 	scaling = 0.5**float(i)
 	Map = squareStep(Map,scaling)
 	Map = diamondStep(Map,scaling)
@@ -171,7 +171,7 @@ for i in range(0,100000):
 	totalheight = Map+water
 	#print totalheight.max()
 	if i%1 == 0:
-		m = dv
+		m = totalheight
 		print m.min(),m.max()
 		nim = (m-m.min() )/(m.max()-m.min() )
 		highgui.cvShowImage("oh hai",nim)

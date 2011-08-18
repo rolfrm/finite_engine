@@ -160,9 +160,6 @@ unsigned int Texture::GetGLTexture(){
 		}else{
 			glCol = GL_INTENSITY;
 			}
-		for(int i = 0; i < width*height*4;i+=4){
-			std::cout << i << ":" << data[i] << " " << data[i+1] << " " << data[i+2] << " " << data[i+3] << "\n";
-			}
 		glGenTextures(1,&gltex);
 		glBindTexture(GL_TEXTURE_2D, gltex);
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST );
