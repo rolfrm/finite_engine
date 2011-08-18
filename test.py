@@ -60,23 +60,23 @@ uniform vec3 MultiLightColor[MAX_LIGHTS];
 uniform int NumLights;
 varying vec2 normal;
 void main(){
-	vec3 globalColor = vec3(0.7,0.6,0.5)/2;
+	vec3 globalColor = vec3(0.7,0.6,0.5)/2.0;
 	vec4 tex = texture2D(tex0,vuv);
 	vec3 col = vColor;
 	col +=  tex.xyz;
-	vec3 ncol = vec3(0,0,0);
+	vec3 ncol = vec3(0.0,0.0,0.0);
 	for(int i =0; i< NumLights;i++){
-		 float namb = 0;//1.0/(length(vMultiLightDir[i]));
+		 float namb = 0.0;//1.0/(length(vMultiLightDir[i]));
 		 float ndiff = max(dot(normalize(normal),normalize(vMultiLightDir[i])),0.0)*1.0/(length(vMultiLightDir[i])/5.0);
 		ncol += col*(min(1.0,namb) + ndiff*0.5)*MultiLightColor[i]*MultiLightIntensity[i]; 
 	}
 	ncol += globalColor;
-	if(tex != 0){
-		gl_FragColor= vec4(ncol,tex.a);
-	}else{
-	gl_FragColor= vec4(ncol,1);
+	//if(tex != 0){
+		gl_FragColor= vec4(ncol,1);
+	//}else{
+	//gl_FragColor= vec4(ncol,1.0);
 
-	}
+	//}
 }
 """
 
