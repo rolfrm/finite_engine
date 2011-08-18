@@ -4,6 +4,7 @@ import time
 import numpy
 import random
 import math
+import world_generator.fractal_land as worldgen
 gfw.Init(500,700,False)
 vs = """
 uniform sampler2D tex0;
@@ -60,7 +61,7 @@ uniform vec3 MultiLightColor[MAX_LIGHTS];
 uniform int NumLights;
 varying vec2 normal;
 void main(){
-	vec3 globalColor = vec3(0.7,0.6,0.5)/2.0;
+	vec3 globalColor = vec3(0.7,0.6,0.5)/2.0*0;
 	vec4 tex = texture2D(tex0,vuv);
 	vec3 col = vColor;
 	col +=  tex.xyz;
@@ -132,7 +133,7 @@ def MakeBox(sizex, sizey,mass,position):
 	color = numpy.array([1,1,1, 1,1,1, 1,1,1, 1,1,1],dtype=numpy.float32)
 	uv = numpy.array([0,0,1,0,1,1,0,1],dtype=numpy.float32)
 	go = GameObject(o1 ,gfw.Polygon(v.tostring(),len(v),indices.tostring(),len(indices),color.tostring(),len(color),uv.tostring(),len(uv)))
-	#go.GraphicsObject.AddTexture(tex,0)
+	go.GraphicsObject.AddTexture(tex,0)
 
 	return go
 
@@ -173,7 +174,7 @@ man1 = man(0,0)
 noise = (numpy.random.random(16*16*4)).astype(numpy.float32)
 #noise = numpy.ones(16*16*4,dtype=numpy.float32)*0.5
 
-tex = gfw.Texture(noise.tostring(),16,16,4)
+tex = gfw.Texture(worldgen.MakeMap().tostring(),64,64,1)
 print noise
 
 
