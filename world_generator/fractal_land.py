@@ -19,7 +19,7 @@ def saveMap2(Map,name,high,low):
 	max = high
 	rng = max-min
 	rescaled = (Map - min)/rng*255
-	print rescaled.min(),rescaled.max()
+	print (rescaled.min(),rescaled.max())
 	rescaled = rescaled.astype(numpy.uint8)
 	im = Image.fromarray(rescaled)
 	im.save(name)
@@ -74,111 +74,109 @@ def squareStep(curmap,scaling):
 			
 	return newmap
 	
+def MakeMap():
+	Map = numpy.zeros((7,7))
+	#Map[2][2] = 5
+	for i in range(0,4):
+		scaling = 0.5**float(i)
+		Map = squareStep(Map,scaling)
+		Map = diamondStep(Map,scaling)
+		print(Map.shape)
+	return Map
 
-Map = numpy.zeros((7,7))
-Map[2][2] = 5
-for i in range(0,4):
-	scaling = 0.5**float(i)
-	Map = squareStep(Map,scaling)
-	Map = diamondStep(Map,scaling)
-	print Map.shape
-m = Map.mean()
-s = Map.var()
-waterheight = 0
+def ErosionFilter(Map, iterations):
+	water = numpy.ones(Map.shape)*0
+	fl = numpy.zeros(water.shape)
+	fr = numpy.zeros(water.shape)
+	ft = numpy.zeros(water.shape)
+	fb = numpy.zeros(water.shape)
 
-water = numpy.ones(Map.shape)*waterheight
-water = (water - Map)*0
-for i in range(0,water.shape[0]):
-	row = water[i]
-	for j in range(0,water.shape[1]):
-		val = row[j]
-		if val < 0:
-			water[i][j] = 0
-			
-fl = numpy.zeros(water.shape)
-fr = numpy.zeros(water.shape)
-ft = numpy.zeros(water.shape)
-fb = numpy.zeros(water.shape)
+	dt = 0.3
 
-dt = 0.3
+	def fixheights(h,water):
+		a = h > water
+		#print a
+		h[a] = water[a]
+		a = h < 0
+		h[a] = 0
 
-def fixheights(h,water):
-	a = h > water
-	#print a
-	h[a] = water[a]
-	a = h < 0
-	h[a] = 0
-
-#iterate water flow
-#water += 0.1
-g = 1
-l = 1
-A = 1			
-totalheight = Map+water
-
-padding = numpy.zeros(water.shape)
-
-saveMap(water,"h.png")
-saveMap(Map,"m.png")
-saveMap(totalheight,"th.png")
-counter = 0
-for i in range(0,100000):
-	counter +=1	
-	hl = padding.copy()
-	hr = padding.copy()
-	ht = padding.copy()
-	hb = padding.copy()
-
-	hl[1:,:] -=  totalheight[:len(totalheight)-1,:] - totalheight[1:,:]
-	hr[:-1,:] -= totalheight[1:,:] - totalheight[:-1,:]
-	ht[:,1:] -=  totalheight[:,:len(ht)-1] - totalheight[:,1:]
-	hb[:,:-1] -= totalheight[:,1:] - totalheight[:,:-1]
-	fixheights(hl,water)
-	fixheights(hr,water)
-	fixheights(hb,water)
-	fixheights(ht,water)
-	fl = fl + hl*(g/l*dt)
-	fr = fr + hr*(g/l*dt)
-	fb = fb + hb*(g/l*dt)
-	ft = ft + ht*(g/l*dt)
-	
-	outflow = fl+fr+fb+ft
-	outdv = dt*outflow
-	k = water/outdv
-	#print "k:",k
-	a = abs(k)<1
-	
-	fl[a] = fl[a]*k[a]
-	fr[a] = fr[a]*k[a]
-	fb[a] = fb[a]*k[a]
-	ft[a] = ft[a]*k[a]
-	#fl = fl*k
-	#fr = fl*k
-	#fb = fl*k
-	#ft = fl*k
-
-	dv = numpy.zeros(water.shape)
-	#in flows:
-	dv[:-1,:] += fl[1:,:]
-	dv[1:,:] += fr[:-1,:]
-	dv[:,:-1] += ft[:,1:]
-	dv[:,1:] += fb[:,:-1]
-	#out flows:
-	dv -=fl+fr+ft+fb
-	dv *=dt
-	#print "water:",water
-	water += dv
+	#iterate water flow
+	#water += 0.1
+	g = 1
+	l = 1
+	A = 1			
 	totalheight = Map+water
-	#print totalheight.max()
-	if i%1 == 0:
-		m = totalheight
-		print m.min(),m.max()
-		nim = (m-m.min() )/(m.max()-m.min() )
-		highgui.cvShowImage("oh hai",nim)
-		k = highgui.cvWaitKey(1)
-		if k == 'a' and counter > 10:
-			water += 0.1
-			counter = 0
-		if k == 'b' and counter > 10:
-			water[:water.shape[0]/8,:water.shape[1]/8] += 50
-		#saveMap2(dv,"h" + str(i)+ ".png",3,-3)
+
+	padding = numpy.zeros(water.shape)
+
+	saveMap(water,"h.png")
+	saveMap(Map,"m.png")
+	saveMap(totalheight,"th.png")
+	counter = 0
+	water += 0.5
+	for i in range(0,iterations):
+		
+		counter +=1	
+		hl = padding.copy()
+		hr = padding.copy()
+		ht = padding.copy()
+		hb = padding.copy()
+
+		hl[1:,:] -=  totalheight[:len(totalheight)-1,:] - totalheight[1:,:]
+		hr[:-1,:] -= totalheight[1:,:] - totalheight[:-1,:]
+		ht[:,1:] -=  totalheight[:,:len(ht)-1] - totalheight[:,1:]
+		hb[:,:-1] -= totalheight[:,1:] - totalheight[:,:-1]
+		fixheights(hl,water)
+		fixheights(hr,water)
+		fixheights(hb,water)
+		fixheights(ht,water)
+		fl = fl + hl*(g/l*dt)
+		fr = fr + hr*(g/l*dt)
+		fb = fb + hb*(g/l*dt)
+		ft = ft + ht*(g/l*dt)
+	
+		outflow = fl+fr+fb+ft
+		outdv = dt*outflow
+		k = water/outdv
+		print "k:",k
+		a = abs(k)<1
+	
+		fl[a] = fl[a]*k[a]
+		fr[a] = fr[a]*k[a]
+		fb[a] = fb[a]*k[a]
+		ft[a] = ft[a]*k[a]
+		#fl = fl*k
+		#fr = fl*k
+		#fb = fl*k
+		#ft = fl*k
+
+		dv = numpy.zeros(water.shape)
+		#in flows:
+		dv[:-1,:] += fl[1:,:]
+		dv[1:,:] += fr[:-1,:]
+		dv[:,:-1] += ft[:,1:]
+		dv[:,1:] += fb[:,:-1]
+		#out flows:
+		dv -=fl+fr+ft+fb
+		dv *=dt
+		#print "water:",water
+		water += dv
+		totalheight = Map+water
+		#print totalheight.max()
+		if i%1 == 0:
+			m = totalheight
+			print (m.min(),m.max())
+			nim = (m-m.min() )/(m.max()-m.min() )
+			highgui.cvShowImage("oh hai",nim)
+			k = highgui.cvWaitKey(1)
+			if k == 'a' and counter > 10:
+				water += 0.1
+				counter = 0
+			if k == 'b' and counter > 10:
+				water[:water.shape[0]/8,:water.shape[1]/8] += 50
+	return totalheight
+
+if __name__ == "__main__":
+	Map = MakeMap()
+	ErosionFilter(Map,505)
+	
