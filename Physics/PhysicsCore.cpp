@@ -8,7 +8,6 @@
 
 
 
-
 namespace Dormir{
 	Core::Core(unsigned int nMaxNodes){
 		CollisionDetecter=new SeperatingAxis(this);
@@ -34,6 +33,7 @@ namespace Dormir{
 	}
 
 	void Core::Run(){
+		savedNodes.clear();
 		for(std::list<Dormir::PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
 			(*it)->Advance();
 		}
@@ -151,6 +151,7 @@ namespace Dormir{
 		for(unsigned int i=0;i<allocatedNodes;i+=2){
 			Nodes[i].to->OnCollision(&Nodes[i]);
 			Nodes[i].from->OnCollision(&Nodes[i]);
+			savedNodes.push_back(Nodes[i]);
 		}
 
 
@@ -308,6 +309,13 @@ namespace Dormir{
 		temp3+=from->GetVelocity();
 		return n*(temp2-temp3);
 	}
-
+	CollisionNode Core::GetNextCollision(){
+		CollisionNode out = savedNodes.front();
+		savedNodes.pop_front();
+		return out;
+	}
+	bool Core::CollisionsReady(){
+	return savedNodes.size() > 0;
+	}
 
 }

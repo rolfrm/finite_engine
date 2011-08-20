@@ -21,10 +21,26 @@ namespace Dormir{
 	class Joint;
 
 
-	struct CollisionNode{
-		Dormir::PhysicsObject * from,* to;
-		Vec2 axis,contact,rf,rt,tangent;
-		double intersection,I,T;
+	class CollisionNode{
+		public:
+			Dormir::PhysicsObject * from,* to;
+			Vec2 axis,contact,rf,rt,tangent;
+			double intersection,I,T;
+		Dormir::PhysicsObject * GetFrom(){
+			return from;
+		}
+		Dormir::PhysicsObject * GetTo(){
+			return to;
+		}
+		double GetIntersection(){
+			return intersection;
+		}		
+		double GetI(){
+			return I;
+		}
+		double GetT(){
+			return T;
+		}
 	};
 
 	class Core{
@@ -51,8 +67,11 @@ namespace Dormir{
 
 		void setSlopOverlap(double d);
 		void setBiasOverlap(double d){biasOverlap=Clamp(d,0.1,0.3);};
-
 		double Clamp(double value,double lower,double upper);
+		CollisionNode GetNextCollision();
+		bool CollisionsReady();
+		std::list<CollisionNode> savedNodes;
+
 
 		Dormir::PhysicsObject * PointInsideObject(int x,int y);
 		Dormir::PhysicsObject * PointInsideObject(Vec2);

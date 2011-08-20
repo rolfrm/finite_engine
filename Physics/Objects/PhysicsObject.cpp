@@ -4,47 +4,49 @@
 #include <math.h>
 #include <iostream>
 
+int runningNr = 0;
 namespace Dormir{
 
 	PhysicsObject::PhysicsObject(Vec2 StartPos,double newE,double newMu,double newMass){
-		Pos=StartPos;
-		Vel.SetValue(0,0);
-		angle=0;
-		angleSpeed=0;
-		setRestitution(newE);
-		setFriction(newMu);
-		setMass(newMass);
+		
+		Init(StartPos,newE,newMu,newMass);
 	}
 
 	PhysicsObject::PhysicsObject(Vec2 StartPos,double newE,double newMu)
 	{
-		PhysicsObject(StartPos,newE,newMu,0);
+		Init(StartPos,newE,newMu,0);
 	}
 
 	PhysicsObject::PhysicsObject(Vec2 StartPos)
 	{
-		PhysicsObject(StartPos,0,0,0);
+		Init(StartPos,0,0,0);
+			
 	}
 
 	PhysicsObject::PhysicsObject(double nMass,double nE,double nMu){
-		Pos.SetValue(0,0);
-		Vel.SetValue(0,0);
-		angle=0;
-		angleSpeed=0;
-		setRestitution(nE);
-		setFriction(nMu);
-		setMass(nMass);
+		Init(Vec2(0,0),nE,nMu,nMass);
 	}
 
 	PhysicsObject::PhysicsObject(){
-		Pos.SetValue(0,0);
+		Init(Vec2(0,0),0,0,0);
+		
+
+	}
+	
+	void PhysicsObject::Init(Vec2 Pos,double e,double mu,double mass){
+		this->Pos=Pos;
 		Vel.SetValue(0,0);
 		angle=0;
 		angleSpeed=0;
-		setRestitution(0);
-		setFriction(0);
-		setMass(0);
+		setRestitution(e);
+		setFriction(mu); 
+		setMass(mass);
+		
+		
+		ID = runningNr;
+		runningNr += 1;
 	}
+	
 
 	void PhysicsObject::setMass(double newMass){
 		if(newMass!=0)
@@ -240,5 +242,8 @@ namespace Dormir{
 			}
 		}
 		return false;
+	}
+	int PhysicsObject::GetID(){
+		return ID;
 	}
 }
