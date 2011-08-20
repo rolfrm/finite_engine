@@ -42,7 +42,7 @@ namespace Dormir{
 		void Revert();
 		void AdjustPosition(Vec2 V);
 		void AdjustPosition(double x,double y);
-		void SetPosition(Vec2 V){Pos=V;};
+		void SetPosition(Vec2 V);
 		void AdjustAngle(double a);
 		void AddForce(Vec2 Force,Vec2 Arm);
 		void AddForce(Vec2 Force);
@@ -72,6 +72,8 @@ namespace Dormir{
 		void setVelocity(double x,double y){Vel.x=x;Vel.y=y;};
 		void FindBounds();
 		void CalculateMomentofInertia();
+		void SetGhost(bool isGhost);
+		bool IsGhost();
 		int GetID();
 
 		virtual void OnCollision(CollisionNode *){};
@@ -93,6 +95,7 @@ namespace Dormir{
 		Vec2 Pos,Vel;
 		double e,mu,mass,invMass,invInertia,inertia,angle,angleSpeed;
 		Dormir::Core * World;
+		bool ghost;
 		
 		int ID;
 	};

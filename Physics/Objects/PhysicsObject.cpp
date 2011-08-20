@@ -194,8 +194,12 @@ namespace Dormir{
 		Pos+=v;
 		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++)
 			it->Move(v);
-
 	}
+	
+	void PhysicsObject::SetPosition(Vec2 v){
+		AdjustPosition(v - Pos);
+	}
+	
 
 	void PhysicsObject::AdjustPosition(double x,double y){
 		Vec2 v(x,y);
@@ -246,4 +250,13 @@ namespace Dormir{
 	int PhysicsObject::GetID(){
 		return ID;
 	}
+	
+	void PhysicsObject::SetGhost(bool isGhost){
+		ghost = isGhost;
+	}
+	
+	void PhysicsObject::IsGhost(){
+		return ghost;
+	}
+	
 }

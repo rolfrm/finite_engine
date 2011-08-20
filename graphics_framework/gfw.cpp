@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <list>
+#include "defaultshader.h"
 void printLog(GLuint obj)
 {
     int infologLength = 0;
@@ -101,6 +102,7 @@ void Init(int width,int height, bool fullscreen){
 	glPointSize(3);
 	glColor4f(1,1,1,1);
 	glClearColor(0,0,0,1);
+	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
@@ -109,6 +111,8 @@ void Init(int width,int height, bool fullscreen){
 	{
 		std::cout << "Error setting up GLEW!\n";
 	}
+	
+	ActiveShader = Shader(vs,fs);  
 }
 
 Vec ScreenToWorldCoordinates(Vec in){
@@ -302,6 +306,7 @@ Polygon::Polygon(std::vector<float> vertexes, std::vector<int> indices, std::vec
 	refreshVbos();
 	}
 Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv){
+	drawType = GL_QUADS;
 	this->vertexes = std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv);
 	this->indices = std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li);
 	
@@ -372,7 +377,7 @@ void Polygon::Draw(){
 	}
 	
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);	
-	glDrawElements(GL_POLYGON,indices.size(),GL_UNSIGNED_INT,0);
+	glDrawElements(drawType,indices.size(),GL_UNSIGNED_INT,0);
 	glDisableVertexAttribArray(posAttribLoc);
 	
 	if(usingColor){
@@ -384,7 +389,9 @@ void Polygon::Draw(){
 		}
 	
 	}
-
+void Polygon::SetDrawType(unsigned int i){
+	drawType = i;
+}
 Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart){
 	AddTexture(FontTex,0);
 	this->fromx = fromx;

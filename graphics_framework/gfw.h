@@ -42,7 +42,8 @@ class DrawableTest: public Drawable{
 		
 		unsigned int testVBO;
 };
-
+#define POLYGON GL_POLYGON
+#define LINES GL_LINES
 class Polygon:public Drawable{
 	public:
 	Polygon(std::vector<float> vertexes, std::vector<int> indices, std::vector<float> colors, std::vector<float> uvs);
@@ -50,7 +51,7 @@ class Polygon:public Drawable{
 	
 	
 	void Draw();
-	
+	void SetDrawType(unsigned int);
 	bool usingColor,usingUV;
 	
 	std::vector<float> vertexes;
@@ -65,6 +66,7 @@ class Polygon:public Drawable{
 	
 	private:
 	void refreshVbos();
+	unsigned int drawType;
 	
 };
 
