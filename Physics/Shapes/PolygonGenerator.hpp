@@ -18,7 +18,7 @@ namespace Dormir{
 
 	Polygon GenerateGeneralPolygon(double x,double y,double Vertex[],unsigned int vertices);
 
-	std::list<Polygon> GenerateLand(double hlist[],unsigned int size,double Length,double Height,double Depth);
+	std::list<Polygon> GenerateLand(char * hlist,unsigned int size,double Length,double Height,double Depth);
 	void split(std::vector<float> Input,std::vector<std::vector<float> > * Output);
 
 }

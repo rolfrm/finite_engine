@@ -52,7 +52,8 @@ namespace Dormir{
 	};
 
 
-	std::list<Polygon> GenerateLand(double hlist[],unsigned int size,double Length,double Height,double Depth){
+	std::list<Polygon> GenerateLand(char * hlist2,unsigned int size,double Length,double Height,double Depth){
+		double * hlist = (double*)hlist2;
 		std::vector<std::vector<float> > Output;
 		std::vector<float > Input;
 		for(unsigned int i=0;i<size;i++)

@@ -141,10 +141,11 @@ void Draw(float x,float y, float rotation, Drawable* drw){
 	drw->Draw();
 }
 
-Texture::Texture(char* data, int width, int height, int colorChannels){
+Texture::Texture(char* data, int width, int height, int colorChannels, int inputSize){
 	this->data = (float*)data;
 	this->width = width;
 	this->height = height;
+	this->InputSize = inputSize;
 	ColorChannels = colorChannels;
 	gltex = -1;
 	gltex = GetGLTexture();
@@ -159,7 +160,13 @@ unsigned int Texture::GetGLTexture(){
 			glCol = GL_RGBA;
 		}else{
 			glCol = GL_INTENSITY;
-			}
+		}
+		unsigned int intype;
+		if (InputSize == 1){
+			intype = GL_UNSIGNED_BYTE;
+		}else if(InputSize == 4){
+			intype = GL_FLOAT;
+		}
 		glGenTextures(1,&gltex);
 		glBindTexture(GL_TEXTURE_2D, gltex);
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST );
@@ -167,7 +174,7 @@ unsigned int Texture::GetGLTexture(){
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 		
-		glTexImage2D(GL_TEXTURE_2D,0,ColorChannels,this->width,this->height,0,glCol,GL_FLOAT,data);
+		glTexImage2D(GL_TEXTURE_2D,0,ColorChannels,this->width,this->height,0,glCol,intype,data);
 	}
 	return gltex;
 	
@@ -255,8 +262,15 @@ void Drawable::ActivateTextures(){
 				char buf[10];
 				sprintf(buf,"tex%i",i);
 				ActiveShader.SetUniform1i(i,buf);
+				char buf2[15];
+				sprintf(buf2,"tex%iActive",i);
+				ActiveShader.SetUniform1i(1,buf2);
+
+
 			}else{
-				glBindTexture(GL_TEXTURE_2D, 0);
+				char buf[15];
+				sprintf(buf,"tex%iActive",i);
+				ActiveShader.SetUniform1i(0,buf);
 			}
 	}
 }
@@ -358,7 +372,7 @@ void Polygon::Draw(){
 	}
 	
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);	
-	glDrawElements(GL_QUADS,indices.size(),GL_UNSIGNED_INT,0);
+	glDrawElements(GL_POLYGON,indices.size(),GL_UNSIGNED_INT,0);
 	glDisableVertexAttribArray(posAttribLoc);
 	
 	if(usingColor){
@@ -370,11 +384,38 @@ void Polygon::Draw(){
 		}
 	
 	}
-	
+
+Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart){
+	AddTexture(FontTex,0);
+	this->fromx = fromx;
+	this->tox = tox;
+	this->fromy = fromy;
+	this->toy = toy;
+	this->lines = lines;
+	this->charsPerLine = charsPerLine;
+	this->textStart = textStart;
+}
+void Text::SetText(std::string text){
+	this->text = text;
+}
+void Text::Draw(){
+	for(int i = 0; i < text.length(); i++){
+		char letter = text[i];
+		int index = letter - this->textStart;
+		if( index < 0){
+			index = 0;
+		}
+		int line = index/charsPerLine;
+		float charSizeX = (tox - fromx)/charsPerLine;
+		std::cout << (int)letter << "\n";
+	}
+}
+
+
 Vec::Vec(){
 	X = 0;
 	Y = 0;
-	}
+	} 
 Vec::Vec(float x,float y){
 	X = x;
 	Y = y;
