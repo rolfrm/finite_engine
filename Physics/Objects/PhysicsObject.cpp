@@ -198,6 +198,7 @@ namespace Dormir{
 	
 	void PhysicsObject::SetPosition(Vec2 v){
 		AdjustPosition(v - Pos);
+		Pos = v;
 	}
 	
 
@@ -251,12 +252,12 @@ namespace Dormir{
 		return ID;
 	}
 	
-	void PhysicsObject::SetGhost(bool isGhost){
+	/*void PhysicsObject::SetGhost(bool isGhost){
 		ghost = isGhost;
 	}
 	
-	void PhysicsObject::IsGhost(){
+	bool PhysicsObject::IsGhost(){
 		return ghost;
-	}
+	}*/
 	
 }

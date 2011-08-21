@@ -14,24 +14,17 @@ for i in range(0,4):
 lvselect = int(random.random()*len(connections))
 n1 = nodes[connections[lvselect][0]]
 n2 = nodes[connections[lvselect][1]]
-print n1,n2
 hmap = GenHeightMap(n1[0][1],n2[0][1],8)
-
 gos = MakeSurfaceFromHeights(hmap,3.0*8,10)
-
 for i in gos:
 	i.Body.AdjustPosition(-48,0)
-fonttex = gfw.Texture(fontpng.tostring(),800,600,4,1)
-
-#textobj = gfw.Text(fonttex, 0,1,0,1,1,80,32);
-#textobj.SetText("Oh hai!")
-#textobj.Draw()
+	
+mainLevel = core.Level([],gos,[])
 
 g1 = core.GameObject(makeGfxBox(3.0,3.0),MakePhysicsBox(3.5,3.5,1,(0,hmap[0]+30)))
-g1.newLv = False
+
 g2 = core.GameObject(makeGfxBox(100,10),MakePhysicsBox(100,190,0,(0,0)))
 portal = core.GameObject(makeGfxBox(5.0,5.0),MakePhysicsBox(5.0,1.0,1,(55,hmap[0]+40)),(0,2))
-g2.Visual.AddTexture(fonttex,0)
 g3 = core.GameObject(makeGfxBox(3.0,3.0),MakePhysicsBox(3.5,3.5,1,(0,hmap[0]+30)))
 def OhHai(self,other,force):
 	print force
@@ -64,5 +57,4 @@ gameCore.LoadLevel(gos)
 gameCore.LoadObject(g1)
 gameCore.LoadObject(portal)
 gameCore.ReloadObject(g3)
-gameCore.followIndex = gameCore.GameObjects.index(g1)
 gameCore.doMainLoop()

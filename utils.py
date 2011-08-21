@@ -64,13 +64,12 @@ def GenLevel(nodes, connections):
 		dist = sum(map(lambda x,y: (x-y)**2,n1[0],n2[0]))**0.5
 		npos = map(lambda x,y: (x+y)/2.0+random.gauss(0,0.25)*dist,n1[0],n2[0])
 		ntype = "cave"
-		n3 = [npos,ntype]
+		n3 = [npos,ntype,[]]
 		roll_split = random.random()
 		n4 = 0
 		if roll_split < split_chance:
-			print "Splitting!"
 			npos = map(lambda x: x + random.gauss(0,0.25)*dist,npos)
-			n4 = [npos,ntype]
+			n4 = [npos,ntype,[]]
 		return n3,n4
 	for i in connections[:]:
 		n1 = nodes[i[0]]
@@ -96,35 +95,146 @@ def GenHeightMap(x1, x2,steps):
 			rand = (random.random()-0.5)*dist/2
 			newNodes.append((now+last)/2 +rand)
 			newNodes.append(now)
+			
 		return newNodes
 	for i in range(0,steps):
 		nodes = Iterate(nodes)	
 	return nodes
 
+def getDist(x1,x2):
+	return sum(map(lambda x,y: (x-y)**2,x1,x2))**0.5 
 
-
-def GenLevel2(PathList,connections):
-	pass
+def GenLevel2(PathList,portals,nodes):
+	print "Generating level, Data:"
+	print PathList
+	print portals
+	print nodes
+	levels = []
+	for path in PathList:
+		walkway = []
+		portalList = []
+		pathPortals = []
+		for j in portals:
+			if j[0] == PathList.index(path):
+				pathPortals.append(j)
+		for i in range(0,len(path)):
+			nodeIndex = path[i]
+			for j in pathPortals:
+				if j[2] == i:
+					portalList.append([len(walkway),j])
+			if i == len(path)-1:
+				break
+			node = nodes[nodeIndex]
+			nextnode = nodes[path[i+1]]
+			pos = node[0]
+			nextpos = nextnode[0]
+			distance = getDist(pos,nextpos)
+			n = int(math.log(distance,2))
+			hmap = GenHeightMap(pos[1],pos[2],n)
+			walkway.extend(hmap)
+		surf = MakeSurfaceFromHeights(walkway,10,10)
+		localPortals =[]
+		for i in portalList:
+			portal = core.GameObject(makeGfxBox(5.0,5.0),MakePhysicsBox(5.0,1.0,1,(i[0]*10,walkway[min(i[0],len(walkway)-1)]+40)),(0,2))
+			portal = core.Portal(levels,(i[0]*10,walkway[min(i[0],len(walkway)-1)]+40),i[1][1],i[1][3])
+			localPortals.append(portal)
+			portal.conn = [i[1][1],i[1][3]]
+		levels.append([localPortals,surf])
+		
+	def PortalGetLevel(path,portal,levellist):
+		level = levellist[path]
+		arrivePortal = level[0][portal]
+		gamedata = level[0]
+		gamedata.extend(level[1])
+		return gamedata,arrivePortal
+		
+	for level in levels:
+		for portal in level[0]:
+			portal.levels = level
+			portal.GetLevel = PortalGetLevel
+	return levels
+def GenPathList(nodes,connections):
+	
+	def GetPath(nodes,connections):
+		path = []
+		cnode = 0
+		#1: Find unused
+		for i in range(0,len(connections)):
+			if len(connections[i]) == 2: #Unused
+				cnode = connections[i]
+				cnode.append(True)
+				break
+		if cnode == 0:
+			return []
+		path = [cnode[0], cnode[1]]
+		#2: Find unused, that matches
+		lookFor = cnode[1]
+		while True:
+			changed = False
+			for i in connections:
+				if len(i) == 2 and (i[0] == lookFor or i[1] == lookFor):
+					v = -1
+					i.append(True)
+					if i[0] == lookFor:
+						v = 1
+					if i[1] == lookFor:
+						v = 0
+					changed = True
+					path.append(i[v])
+					lookFor = i[v] 
+			if not changed:
+				break
+		
+		return path
+	
+	pathList = []
+	while True:
+		newPath = GetPath(nodes,connections)
+		if newPath == []:
+			break
+		pathList.append(newPath)
+	
+	return pathList	
+def GetPortalList(pathList):
+	portals = []
+	for path1 in pathList:
+		for path2 in pathList:
+			if path2 == path1:
+				continue
+			for x in path1: 
+				for y in path2: 
+					if x == y:
+						portals.append([pathList.index(path1),pathList.index(path2),path1.index(x),path2.index(y)])
+	return portals
+	
+from copy import deepcopy
+import time
 if __name__=="__main__":
+	random.seed(10)
 	import gfw
 	import shaders
 	print GenHeightMap(1.0,2.0,10)
-	quit()
 	gfw.Init(800,600,False)
 	s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 	gfw.SetActiveShader(s1);
 	gfw.Zoom(200,200)
 	nodes = [ [[-100.0,0.0,0.0],'cave'],[[100.0,0.0,0.0],'forest']]
 	connections = [[0,1]]
-	for i in range(0,9):
-		print i,len(nodes)
+	for i in range(0,3):
 		GenLevel(nodes,connections)
-	
+	print nodes
+	print connections
+	print "GEN PATH LIST:"
+	pathList = GenPathList(nodes,deepcopy(connections))
+	portalList = GetPortalList(pathList)
+	portalList.append([0,0,0,0]) #Start portal
+	print pathList,portalList
+	GenLevel2(pathList,portalList,nodes)
 	verts = []
 	indices = []
 	colors = []
-	zmin = 1000
-	zmax = -1000
+	zmin = 100000
+	zmax = -100000
 	
 	for i in nodes:
 		z =i[0][2] 
@@ -148,6 +258,7 @@ if __name__=="__main__":
 		try:
 			gfw.Draw(0,0,0,tree)
 			gfw.Refresh()
+			time.sleep(1)
 		except KeyboardInterrupt as ke:
 			break
 		
