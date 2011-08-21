@@ -38,11 +38,7 @@ class GameObject(object):
 		self.x = x
 		self.y = y
 		if self.Body is not 0:
-			print "Setting pos"
 			self.Body.SetPosition(physics.Vec2(x,y))
-			print x,y
-			out = self.Body.GetPosition()
-			print out.x,out.y
 	def UpdatePos(self):
 		if self.Body is not 0:
 			pos = self.Body.GetPosition()
@@ -94,7 +90,7 @@ class Core:
 		gfw.Init(600,600,False)
 		self.s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 		gfw.SetActiveShader(self.s1);
-		gfw.Zoom(100,100)
+		gfw.Zoom(20,20)
 		self.PhysicsCore = physics.Core(100)
 		self.PhysicsCore.setGravity(0.0,-0.004)
 		self.GameObjects = []
@@ -114,6 +110,7 @@ class Core:
 				for item in self.GameObjects:
 					if isinstance(item,Player):
 							self.s1.SetUniform2f(item.x,item.y,"CameraPosition")	
+							print item.x,item.y
 					if item.Visual is not 0:
 						item.Draw()
 					if item.Body is not 0:

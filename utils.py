@@ -2,6 +2,7 @@ import numpy
 import gfw
 import physics
 import core
+from copy import copy
 def MakePolygon(verts, indices,colors,uvs):
 	nvertexes = numpy.array(verts,dtype=numpy.float32)
 	nindices = numpy.array(indices,dtype=numpy.uint32)
@@ -24,9 +25,10 @@ def MakePhysicsBox(sizex, sizey,mass,position):
 	p1.AddVertex(sx,-sy)
 	p1.AddVertex(sx,sy)
 	p1.AddVertex(-sx,sy)
-	p1.Move(position[0],position[1])
+	#p1.Move(position[0],position[1])
 	o1.LoadPolygon(p1)
 	o1.setFriction(0.6)
+	#o1.SetPosition(physics.Vec2(position[0],position[1]))
 	return o1
 
 def MakePhysicsPolygon(vertexes):
@@ -39,21 +41,30 @@ def MakePhysicsPolygon(vertexes):
 def MakeSurfaceFromHeights(heights,distance,depth):
 	gameObjects = []
 	d = depth
+	distance = float(distance)
 	for i in range(0,len(heights)-1):
 		y1 = heights[i]
 		y2 = heights[i+1]
-		ymid = (y1+y2-d)/2
-		verts = [-distance/2 -0.01, y1-ymid, distance/2 +0.01,y2-ymid,distance/2 + 0.01,y2-ymid-depth,-distance/2 - 0.01,y1-ymid-depth]
+		ymid = (y1 + y2 + y1-d + y2-d)/4
+		verts = [-distance/2, y1-ymid, distance/2,y2-ymid,distance/2,y2-ymid-depth,-distance/2,y1-ymid-depth]
 		indices = [0,1,2,3]
-		colors = [0.5,0.6,0.5, 0.5,0.6,0.5, 0.1,0.1,0.1, 0.1,0.1,0.1]
+		colors = [0.5,0.7,0.5, 0.5,0.6,0.5, 0.1,0.1,0.1, 0.1,0.1,0.1]
 		uvs = [0,0, 1,0, 1,1, 0,1]
-		p = MakePhysicsPolygon(verts)
-		p.Move((i+0.5)*distance,ymid)
+		pverts =copy(verts)
+		for j in range(0,len(pverts),2):
+			pverts[j] +=float(i)*float(distance)
+			pverts[j+1] += ymid
+		p = MakePhysicsPolygon(pverts)
 		o = physics.PhysicsObject()
+		
 		o.setFriction(0.6)
 		o.LoadPolygon(p)
+		o.CalculateMomentofInertia()
+		p2 = o.GetPosition()
+		print "Len:",len(heights)
+		print "Center of mass:",p2.x-(i)*distance,p2.y-ymid
 		g = MakePolygon(verts,indices,colors,uvs)
-		gameObjects.append(core.GameObject(g,o))
+		gameObjects.append(core.GameObject(g,o,(-float(i)/147*2.5,0)))
 	return gameObjects
 import random
 import math
@@ -84,7 +95,7 @@ def GenLevel(nodes, connections):
 		if n4 is not 0:
 			nodes.append(n4)
 			connections.append([i3,i3+1])
-def GenHeightMap(x1, x2,steps):
+def GenHeightMap(x1, x2,steps,roughness = 1):
 	nodes = [x1,x2]
 	def Iterate(nodeList):
 		newNodes = [nodeList[0]]
@@ -92,7 +103,7 @@ def GenHeightMap(x1, x2,steps):
 			last = nodeList[i]
 			now = nodeList[i+1]
 			dist = ((now-last)**2)**0.5
-			rand = (random.random()-0.5)*dist/2
+			rand = (random.random()-0.5)*dist/2*roughness
 			newNodes.append((now+last)/2 +rand)
 			newNodes.append(now)
 			
@@ -104,54 +115,64 @@ def GenHeightMap(x1, x2,steps):
 def getDist(x1,x2):
 	return sum(map(lambda x,y: (x-y)**2,x1,x2))**0.5 
 
-def GenLevel2(PathList,portals,nodes):
+def GenWorld(PathList,portals,nodes,gc):
 	print "Generating level, Data:"
 	print PathList
 	print portals
 	print nodes
 	levels = []
+	levelSplitPlaces = []
+	print "Generating terrain"
 	for path in PathList:
 		walkway = []
-		portalList = []
-		pathPortals = []
-		for j in portals:
-			if j[0] == PathList.index(path):
-				pathPortals.append(j)
-		for i in range(0,len(path)):
+		splits = [[0,0]]
+		levelSplitPlaces.append(splits)
+		for i in range(0,len(path)-1):
 			nodeIndex = path[i]
-			for j in pathPortals:
-				if j[2] == i:
-					portalList.append([len(walkway),j])
-			if i == len(path)-1:
-				break
 			node = nodes[nodeIndex]
 			nextnode = nodes[path[i+1]]
 			pos = node[0]
 			nextpos = nextnode[0]
 			distance = getDist(pos,nextpos)
 			n = int(math.log(distance,2))
-			hmap = GenHeightMap(pos[1],pos[2],n)
+			print pos,nextpos
+			hmap = GenHeightMap(pos[1],nextpos[1],n,2)
 			walkway.extend(hmap)
+			splits.append([len(walkway),hmap[0]])
+		print walkway
 		surf = MakeSurfaceFromHeights(walkway,10,10)
-		localPortals =[]
-		for i in portalList:
-			portal = core.GameObject(makeGfxBox(5.0,5.0),MakePhysicsBox(5.0,1.0,1,(i[0]*10,walkway[min(i[0],len(walkway)-1)]+40)),(0,2))
-			portal = core.Portal(levels,(i[0]*10,walkway[min(i[0],len(walkway)-1)]+40),i[1][1],i[1][3])
-			localPortals.append(portal)
-			portal.conn = [i[1][1],i[1][3]]
-		levels.append([localPortals,surf])
-		
-	def PortalGetLevel(path,portal,levellist):
-		level = levellist[path]
-		arrivePortal = level[0][portal]
-		gamedata = level[0]
-		gamedata.extend(level[1])
-		return gamedata,arrivePortal
-		
-	for level in levels:
-		for portal in level[0]:
-			portal.levels = level
-			portal.GetLevel = PortalGetLevel
+
+		nlv = core.Level([],surf,[])
+		levels.append(nlv)
+	for levelIndex in range(0,len(levels)):
+		level = levels[levelIndex]
+		for j in portals:
+			
+			if levelIndex == j[0] and j[0] is not -1:
+				otherlevel = levels[j[1]]
+				px1 = levelSplitPlaces[levelIndex][j[2]]
+				px2 = levelSplitPlaces[j[1]][j[3]]
+				p1 = core.Portal(level,0,makeGfxBox(4.0,4.0),MakePhysicsBox(4,4,1,(0.0,0)),gc)
+				p1.SetPos(px1[0]*10,px1[1])
+				
+				p2 = core.Portal(otherlevel,p1,makeGfxBox(4.0,4.0),MakePhysicsBox(4,4,1,(0.0,0)),gc)
+				p2.SetPos(px2[0]*10,px2[1])
+				p1.ExitPortal = p1
+				level.Portals.append(p1)
+				if j[0] is not j[1]:
+					p1.ExitPortal = p2
+					otherlevel.Portals.append(p2)
+				
+				for k in portals:
+					if j[0] == k[1] and j[1] == k[0]:
+						
+						k[0] = -1
+						k[1] = -1
+						break
+				j[0] = -1
+				j[1] = -1
+				
+				
 	return levels
 def GenPathList(nodes,connections):
 	
@@ -206,30 +227,34 @@ def GetPortalList(pathList):
 					if x == y:
 						portals.append([pathList.index(path1),pathList.index(path2),path1.index(x),path2.index(y)])
 	return portals
+
+def GenTestWorld(gameCore):
+	nodes = [ [[-100.0,0.0,0.0],'cave'],[[100.0,0.0,0.0],'forest']]
+	connections = [[0,1]]
+	for i in range(0,5):
+		GenLevel(nodes,connections)
+	pathList = GenPathList(nodes,connections)
+	portalList = GetPortalList(pathList)
+	if len(portalList) == 0:
+		portalList.append([0,0,0,0]) #Start portal
 	
+	world = GenWorld(pathList,portalList,nodes,gameCore)
+	
+	return world
+
+
 from copy import deepcopy
 import time
 if __name__=="__main__":
 	random.seed(10)
 	import gfw
 	import shaders
-	print GenHeightMap(1.0,2.0,10)
 	gfw.Init(800,600,False)
 	s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 	gfw.SetActiveShader(s1);
 	gfw.Zoom(200,200)
-	nodes = [ [[-100.0,0.0,0.0],'cave'],[[100.0,0.0,0.0],'forest']]
-	connections = [[0,1]]
-	for i in range(0,3):
-		GenLevel(nodes,connections)
-	print nodes
-	print connections
-	print "GEN PATH LIST:"
-	pathList = GenPathList(nodes,deepcopy(connections))
-	portalList = GetPortalList(pathList)
-	portalList.append([0,0,0,0]) #Start portal
-	print pathList,portalList
-	GenLevel2(pathList,portalList,nodes)
+	GenTestWorld(0)
+	quit()
 	verts = []
 	indices = []
 	colors = []
