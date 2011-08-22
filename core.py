@@ -3,96 +3,15 @@ import gfw
 import time
 import sound_system.soundplayer as snd
 import shaders
-from copy import copy
-class Level:
-	def __init__(self,portals,ground,others):
-		self.Portals = portals
-		self.Ground = ground
-		self.others = others
-	def Load(self,core,player,exitPortal):
-		collected = copy(self.Portals)
-		collected.extend(self.Ground)
-		collected.extend(self.others)
-		print "Exit portal:" ,exitPortal.x,exitPortal.y
-		player.SetPos(exitPortal.x + 5,exitPortal.y)
-		#collected.extend([player])
-		core.LoadLevel(collected)
-		print "collen:", len(collected)
-		core.LoadObject(player)
-		core.followIndex = core.GameObjects.index(player)
-
-class GameObject(object):
-	def __init__(self,graphicsObject = 0, physicsObject = 0, offset = (0,0)):
-		self.Visual = graphicsObject
-		self.Body = physicsObject
-		self.offset = offset
-		self.x = 0
-		self.y = 0
-		self.a = 0
-		self.UpdatePos()
-		self.CollisionResponse = 0
-		self.KeyEventHandler = 0
-		self.MouseEventHandler = 0
-	def SetPos(self,x,y):
-		
-		self.x = x
-		self.y = y
-		if self.Body is not 0:
-			self.Body.SetPosition(physics.Vec2(x,y))
-	def UpdatePos(self):
-		if self.Body is not 0:
-			pos = self.Body.GetPosition()
-			self.x = pos.x
-			self.y = pos.y
-			self.a = self.Body.GetAngle()
-	def Draw(self):
-		self.Visual.ActivateTextures()
-		gfw.Draw(self.x+self.offset[0],self.y+self.offset[1],self.a,self.Visual)
-	def OnCollision(self,other,force):
-		if self.CollisionResponse is not 0:
-			self.CollisionResponse(self,other,force)
-
-class Portal(GameObject):
-	def __init__(self,Level, exitPortal,visual,body,core):
-		super(Portal,self).__init__(visual,body,(0,0))
-		self.Level = Level 
-		self.ExitPortal = exitPortal
-		self.core = core
-		
-		self.CollisionResponse = lambda x,y,z: self.ActivateLevel(y)
-	def ActivateLevel(self,other):
-		if isinstance(other,Player):
-			if other.LoadNextLevel == True:
-					self.ExitPortal.Level.Load(self.core,other,self.ExitPortal)
-		
-class Player(GameObject):
-	def __init__(self,visual,body):
-		super(Player,self).__init__(visual,body,(0,0))
-		self.LoadNextLevel = False
-		self.KeyEventHandler = lambda x,y,z: self.keyEventHandler(y,z)
-	def keyEventHandler(self,a,n):
-		if n == 1:
-			if a == 284:
-				self.Body.AddForce(0,-0.1)
-			if a == 283:
-				self.Body.AddForce(0,0.1)
-			if a == 286:
-				self.Body.AddForce(0.1,0)
-			if a == 285:
-				self.Body.AddForce(-0.1,0)
-			if a == gfw.KEY_LCTRL:
-				self.LoadNextLevel = True
-		if n == 0:
-			if a == gfw.KEY_LCTRL:
-				self.LoadNextLevel = False
+from game_object import *
 class Core:
 	def __init__(self):
-		gfw.Init(600,600,False)
+		gfw.Init(800,800,False,2)
 		self.s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 		gfw.SetActiveShader(self.s1);
-		gfw.Zoom(20,20)
+		gfw.Zoom(400,400)
 		self.PhysicsCore = physics.Core(100)
-		self.PhysicsCore.setGravity(0.0,-0.004)
+		self.PhysicsCore.setGravity(0.0,-0.4)
 		self.GameObjects = []
 		self.KeyEventHandlers =[]
 		self.MouseEventHandlers = []
@@ -101,21 +20,26 @@ class Core:
 		self.PA = snd.PASink(1)
 		self.nodeplayer = snd.NodePlayer(10)
 		self.nodeplayer.Connect(self.PA,0,0)
+		self.Level = 0
 	def doMainLoop(self):
 		i = 0
-		while True:
+		self.Running = True
+		while self.Running == True:
+			if not self.Level is 0:
+				self.Level.Update(0.01)
 			i += 1
 			try:
 					
 				for item in self.GameObjects:
 					if isinstance(item,Player):
 							self.s1.SetUniform2f(item.x,item.y,"CameraPosition")	
-							print item.x,item.y
+							#print item.x,item.y
+							#item.Body.setInertia(0)
 					if item.Visual is not 0:
 						item.Draw()
 					if item.Body is not 0:
 						item.UpdatePos()
-						
+					item.Update(0.1)
 				self.PhysicsCore.Run()
 				gfw.Refresh()
 				while self.PhysicsCore.CollisionsReady():
@@ -133,6 +57,10 @@ class Core:
 				mev = gfw.GetMouseEvents()
 				kev = gfw.GetKeyEvents()	
 				for item in kev:
+					#print item.key
+					if item.key == 257:
+						print "ESCAPE!"
+						self.Running = False
 					for j in self.KeyEventHandlers:
 						j.KeyEventHandler(j,item.key,item.action)
 			
@@ -148,6 +76,7 @@ class Core:
 		if gameObject.Body is not 0:
 			self.PhysicsCore.LoadObject(gameObject.Body)
 			self.PhysicsObjectRef[gameObject.Body.GetID()] = gameObject
+		
 		if gameObject.MouseEventHandler is not 0:
 			self.MouseEventHandlers.append(gameObject)
 		if gameObject.KeyEventHandler is not 0:
@@ -155,14 +84,15 @@ class Core:
 	def ReloadObject(self,gameObject):
 		self.UnloadObject(gameObject)
 		self.LoadObject(gameObject)
-		
+	
 	def UnloadObject(self, gameObject):
 		self.GameObjects.remove(gameObject)
-		self.PhysicsCore.UnloadObject(gameObject.Body)
-		try:
-			self.PhysicsObjectRef.pop(gameObject.Body.GetID())
-		except KeyError:
-			pass
+		if gameObject.Body is not 0:
+			self.PhysicsCore.UnloadObject(gameObject.Body)
+			try:
+				self.PhysicsObjectRef.pop(gameObject.Body.GetID())
+			except KeyError:
+				pass
 		
 		try:
 			self.MouseEventHandlers.remove(gameObject)

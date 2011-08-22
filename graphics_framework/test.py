@@ -28,10 +28,10 @@ uniform sampler2D tex1;
 varying vec3 vColor;
 varying vec2 vuv;
 void main(){
-	vec3 tex = texture2D(tex0,vuv).xyz;
+	vec4 tex = texture2D(tex0,vuv);
 	vec3 col = tex;// + vColor*0.1;
 	col.x -=vuv.x;
-gl_FragColor= vec4(col,1);
+gl_FragColor= vec4(tex);
 }
 """
 ar2 = numpy.array([-0.5,-0.5, -0.5,0.5, 0.5,0.5, 0.5,-0.5],dtype=numpy.float32)
@@ -39,15 +39,16 @@ indices = numpy.array([0,1,2,3],dtype=numpy.uint32)
 colors = numpy.array([1,0,0, 0,1,0, 0,0,1, 1,1,0],dtype=numpy.float32)
 uvs =numpy.array([0,0, 1,0, 1,1, 0,1],dtype=numpy.float32);
 
-noise = (numpy.random.random(128*3)*255).astype(numpy.uint8)
-
+noise = (numpy.random.random(128*8)*255).astype(numpy.uint8)
+import Image
+noise = Image.open('lol.png')
 gfw.Init(300,300,False)
 s1 = gfw.Shader(vs,fs)
 
 a = gfw.Polygon(ar2.tostring(),len(ar2),indices.tostring(),len(indices),colors.tostring(),len(colors),uvs.tostring(),len(uvs))
 gfw.SetActiveShader(s1);
 
-tex = gfw.Texture(noise.tostring(),16,16)
+tex = gfw.Texture(noise.tostring(),16,16,4,1)
 a.AddTexture(tex,0);
 i = 0
 

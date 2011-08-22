@@ -21,7 +21,7 @@ lvselect = int(random.random()*len(connections))
 n1 = nodes[connections[lvselect][0]]
 n2 = nodes[connections[lvselect][1]]
 hmap = GenHeightMap(n1[0][1],n2[0][1],8)
-gos = MakeSurfaceFromHeights(hmap,3.0*8,10)
+gos = MakeSurfaceFromHeights(hmap,30,10)
 
 
 g1 = core.Player(makeGfxBox(3.5,3.5),MakePhysicsBox(3.5,3.5,1,(0.0,0)))

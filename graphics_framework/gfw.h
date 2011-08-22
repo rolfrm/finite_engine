@@ -133,7 +133,7 @@ class Vec{
 
 Vec ScreenToWorldCoordinates(Vec in);
 Vec WorldToScreenCoordinates(Vec in);
-void Init(int width,int height, bool fullscreen);
+void Init(int width,int height, bool fullscreen, int FSAASamples = 0);
 void DeInit();
 void Refresh();
 void Draw(float x, float y,float rotation, Drawable * poly);

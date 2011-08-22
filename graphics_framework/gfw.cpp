@@ -82,11 +82,13 @@ void Zoom(float x, float y){
 	}
 
 Vec ScreenSize;
-void Init(int width,int height, bool fullscreen){
+void Init(int width,int height, bool fullscreen, int FSAASamples){
 	glfwInit();
 	ScreenSize.X = width;
 	ScreenSize.Y = height;
-	
+	if(FSAASamples > 0 && FSAASamples <= 16){
+		glfwOpenWindowHint(GLFW_FSAA_SAMPLES,FSAASamples);
+	}
 	if(fullscreen){
 		glfwOpenWindow(width,height,8,8,8,8,8,8,GLFW_FULLSCREEN);
 	}else{
@@ -101,7 +103,7 @@ void Init(int width,int height, bool fullscreen){
 	glLoadIdentity();
 	glPointSize(3);
 	glColor4f(1,1,1,1);
-	glClearColor(0,0,0,1);
+	glClearColor(0.5,0.6,0.7,1);
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -142,6 +144,7 @@ void Draw(float x,float y, float rotation, Drawable* drw){
 	ActiveShader.SetUniform1f(x,"Xoff");
 	ActiveShader.SetUniform1f(y,"Yoff");
 	ActiveShader.SetUniform1f(rotation,"Rotation");
+	
 	drw->Draw();
 }
 
@@ -153,6 +156,7 @@ Texture::Texture(char* data, int width, int height, int colorChannels, int input
 	ColorChannels = colorChannels;
 	gltex = -1;
 	gltex = GetGLTexture();
+	std::cout << "GLTEX:"<< gltex <<"\n";
 		
 	}
 unsigned int Texture::GetGLTexture(){
@@ -263,16 +267,16 @@ void Drawable::ActivateTextures(){
 			glActiveTexture(GL_TEXTURE0 + i);
 			if(boundTextures[i] != NULL){
 				glBindTexture(GL_TEXTURE_2D, boundTextures[i]->GetGLTexture());
-				char buf[10];
-				sprintf(buf,"tex%i",i);
+				char buf[5];
+				sprintf(buf,"tex%i\0",i);
 				ActiveShader.SetUniform1i(i,buf);
-				char buf2[15];
-				sprintf(buf2,"tex%iActive",i);
+				char buf2[11];
+				sprintf(buf2,"tex%iActive\0",i);
 				ActiveShader.SetUniform1i(1,buf2);
 
 
 			}else{
-				char buf[15];
+				char buf[11];
 				sprintf(buf,"tex%iActive",i);
 				ActiveShader.SetUniform1i(0,buf);
 			}
@@ -368,14 +372,13 @@ void Polygon::Draw(){
 	}
 	
 	if(usingUV){
-			//glEnable(GL_TEXTURE_2D);
-			ActivateTextures();
+			
 			glEnableVertexAttribArray(uvAttribLoc);
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB,uvVbo);
 			glVertexAttribPointer(uvAttribLoc,2,GL_FLOAT,0,0,0);
 		
 	}
-	
+	ActivateTextures();
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);	
 	glDrawElements(drawType,indices.size(),GL_UNSIGNED_INT,0);
 	glDisableVertexAttribArray(posAttribLoc);

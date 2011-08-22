@@ -3,6 +3,15 @@ import gfw
 import physics
 import core
 from copy import copy
+import random
+import math
+import Image
+def LoadImageAsTexture(path):
+	img = Image.open(path)
+	texdata = img.tostring()
+	tex = gfw.Texture(img.tostring(),img.size[0],img.size[1],4,1)
+	return tex
+
 def MakePolygon(verts, indices,colors,uvs):
 	nvertexes = numpy.array(verts,dtype=numpy.float32)
 	nindices = numpy.array(indices,dtype=numpy.uint32)
@@ -10,10 +19,13 @@ def MakePolygon(verts, indices,colors,uvs):
 	nuv = numpy.array(uvs,dtype=numpy.float32)
 	return gfw.Polygon(nvertexes.tostring(),len(nvertexes), nindices.tostring(),len(nindices),ncolor.tostring(),len(ncolor),nuv.tostring(),len(nuv))
 
-def makeGfxBox(sizex,sizey):
+def makeGfxBox(sizex,sizey,color = [0,0,0]):
 	sx = sizex/2
 	sy = sizey/2
-	return MakePolygon([-sx,-sy, sx,-sy, sx,sy, -sx,sy],[0,1,2,3],[1,1,1, 1,1,1, 1,1,1, 1,1,1],[0,-0.9, 0.2,-0.9, 0.2,-1, 0,-1])
+	col = []
+	for i in range(0,4):
+		col.extend(color)
+	return MakePolygon([-sx,-sy, sx,-sy, sx,sy, -sx,sy],[0,1,2,3],col,[0,0, 1,0, 1,-1, 0,-1])
 
 def MakePhysicsBox(sizex, sizey,mass,position):
 	sx = sizex/2
@@ -25,18 +37,37 @@ def MakePhysicsBox(sizex, sizey,mass,position):
 	p1.AddVertex(sx,-sy)
 	p1.AddVertex(sx,sy)
 	p1.AddVertex(-sx,sy)
-	#p1.Move(position[0],position[1])
 	o1.LoadPolygon(p1)
 	o1.setFriction(0.6)
-	#o1.SetPosition(physics.Vec2(position[0],position[1]))
 	return o1
 
+def MakeCompleteObject(verts,color = [],uvs = []):
+	o1 = physics.PhysicsObject()
+	p1 = physics.Polygon()
+	
+	
+	
+	for i in range(0,len(verts),2):
+		p1.AddVertex(verts[i],verts[i+1])
+	if len(color) == 3:
+		begincolor = color[:]
+		for i in range(1,len(verts)):
+			color.extend(begincolor)
+	o1.LoadPolygon(p1)
+	o1.CalculateMomentofInertia()
+	p2 = o1.GetPosition()
+	o1.setMass(0)
+	for i in range(0,len(verts),2):
+		verts[i] -= p2.x
+		verts[i+1] -= p2.y
+	gfx = MakePolygon(verts,range(0,len(verts)),color,uvs)
+	return core.GameObject(gfx,o1)
+	print p2.x,p2.y
 def MakePhysicsPolygon(vertexes):
 	o1 = physics.PhysicsObject()
 	p1 = physics.Polygon()
 	for i in range(0,len(vertexes),2):
 		p1.AddVertex(vertexes[i],vertexes[i+1])
-	#o1.LoadPolygon(p1)
 	return p1
 def MakeSurfaceFromHeights(heights,distance,depth):
 	gameObjects = []
@@ -46,13 +77,16 @@ def MakeSurfaceFromHeights(heights,distance,depth):
 		y1 = heights[i]
 		y2 = heights[i+1]
 		ymid = (y1 + y2 + y1-d + y2-d)/4
-		verts = [-distance/2, y1-ymid, distance/2,y2-ymid,distance/2,y2-ymid-depth,-distance/2,y1-ymid-depth]
+		x1 = float(distance)*float(i)+1
+		verts = [-distance/2 -0.001, y1-ymid, distance/2+0.001,y2-ymid,distance/2+0.001,y2-ymid-depth,-distance/2-0.001,y1-ymid-depth]
 		indices = [0,1,2,3]
 		colors = [0.5,0.7,0.5, 0.5,0.6,0.5, 0.1,0.1,0.1, 0.1,0.1,0.1]
+		colors = [0,0,0, 0,0,0, 0,0,0, 0,0,0]
+		
 		uvs = [0,0, 1,0, 1,1, 0,1]
 		pverts =copy(verts)
 		for j in range(0,len(pverts),2):
-			pverts[j] +=float(i)*float(distance)
+			pverts[j] +=float(i+0.5)*float(distance)
 			pverts[j+1] += ymid
 		p = MakePhysicsPolygon(pverts)
 		o = physics.PhysicsObject()
@@ -61,13 +95,10 @@ def MakeSurfaceFromHeights(heights,distance,depth):
 		o.LoadPolygon(p)
 		o.CalculateMomentofInertia()
 		p2 = o.GetPosition()
-		print "Len:",len(heights)
-		print "Center of mass:",p2.x-(i)*distance,p2.y-ymid
 		g = MakePolygon(verts,indices,colors,uvs)
-		gameObjects.append(core.GameObject(g,o,(-float(i)/147*2.5,0)))
+		gameObjects.append(core.GameObject(g,o))
 	return gameObjects
-import random
-import math
+
 def GenLevel(nodes, connections):
 	split_chance = 0.1
 	def mutateNodes(n1,n2):
@@ -116,16 +147,12 @@ def getDist(x1,x2):
 	return sum(map(lambda x,y: (x-y)**2,x1,x2))**0.5 
 
 def GenWorld(PathList,portals,nodes,gc):
-	print "Generating level, Data:"
-	print PathList
-	print portals
-	print nodes
 	levels = []
 	levelSplitPlaces = []
-	print "Generating terrain"
+	scaling = 25
 	for path in PathList:
 		walkway = []
-		splits = [[0,0]]
+		splits = []
 		levelSplitPlaces.append(splits)
 		for i in range(0,len(path)-1):
 			nodeIndex = path[i]
@@ -135,12 +162,10 @@ def GenWorld(PathList,portals,nodes,gc):
 			nextpos = nextnode[0]
 			distance = getDist(pos,nextpos)
 			n = int(math.log(distance,2))
-			print pos,nextpos
-			hmap = GenHeightMap(pos[1],nextpos[1],n,2)
+			hmap = GenHeightMap(pos[1],nextpos[1],n/2,2)
 			walkway.extend(hmap)
 			splits.append([len(walkway),hmap[0]])
-		print walkway
-		surf = MakeSurfaceFromHeights(walkway,10,10)
+		surf = MakeSurfaceFromHeights(walkway,scaling,500)
 
 		nlv = core.Level([],surf,[])
 		levels.append(nlv)
@@ -152,11 +177,13 @@ def GenWorld(PathList,portals,nodes,gc):
 				otherlevel = levels[j[1]]
 				px1 = levelSplitPlaces[levelIndex][j[2]]
 				px2 = levelSplitPlaces[j[1]][j[3]]
-				p1 = core.Portal(level,0,makeGfxBox(4.0,4.0),MakePhysicsBox(4,4,1,(0.0,0)),gc)
-				p1.SetPos(px1[0]*10,px1[1])
-				
-				p2 = core.Portal(otherlevel,p1,makeGfxBox(4.0,4.0),MakePhysicsBox(4,4,1,(0.0,0)),gc)
-				p2.SetPos(px2[0]*10,px2[1])
+				print px1,px2
+				port1 = MakeCompleteObject([0.0,0.0, 0.0,50.0, 50.0,50.0, 50.0,0.0])
+				p1 = core.Portal(level,0,port1.Visual,port1.Body,gc)
+				p1.SetPos(px1[0]*scaling,px1[1]+50)
+				port2 = MakeCompleteObject([0.0,0.0, 0.0,50.0, 50.0,50.0, 50.0,0.0])
+				p2 = core.Portal(otherlevel,p1,port2.Visual,port2.Body,gc)
+				p2.SetPos(px2[0]*scaling,px2[1] + 50)
 				p1.ExitPortal = p1
 				level.Portals.append(p1)
 				if j[0] is not j[1]:
@@ -229,7 +256,7 @@ def GetPortalList(pathList):
 	return portals
 
 def GenTestWorld(gameCore):
-	nodes = [ [[-100.0,0.0,0.0],'cave'],[[100.0,0.0,0.0],'forest']]
+	nodes = [ [[-2000.0,0.0,0.0],'cave'],[[2000.0,0.0,0.0],'forest']]
 	connections = [[0,1]]
 	for i in range(0,5):
 		GenLevel(nodes,connections)
