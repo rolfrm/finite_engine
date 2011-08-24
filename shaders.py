@@ -51,7 +51,7 @@ uniform vec3 MultiLightColor[MAX_LIGHTS];
 uniform int NumLights;
 varying vec2 normal;
 void main(){
-	vec3 globalColor = vec3(1,1,1)/2.0;
+	vec3 globalColor = vec3(1,1,1);
 	vec3 col = vColor;
 	vec4 tex;
 	if( tex0Active == 1){

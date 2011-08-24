@@ -11,21 +11,23 @@ def SpeedRun(length):
 	nextpos = 0
 	lasty = 0
 	color = [random.random(),random.random(),random.random()]
+	color = [1,1,1]	
 	print color
 	
-	font = LoadImageAsTexture("extremepattern.png")
-	print font
+	#font = LoadImageAsTexture("font1.png")
+	#Text = gfw.Text(font,0,1,0,1,4,4,0)
+	#print font
 	for i in range(0,length):
 		ground = MakeCompleteObject([-100,0, 100,0, 100,-100,-100,-100],color[:],[0,-1, 1,-1, 1,0, 0,0])
-		ground.Visual.AddTexture(font,0)
+		#ground.Visual.AddTexture(font,0)
 		ground.SetPos(nextpos,lasty)
-		ground.tex = font
+		#ground.tex = font
 		lv.append(ground)
 		nextpos = nextpos + 200+i*i
 		lasty = lasty + (random.random()-0.5)*200
-		color[0] = color[0]*0.5 + random.random()*0.5
-		color[1] = color[1]*0.5 + random.random()*0.5
-		color[2] = color[2]*0.5 + random.random()*0.5
+		#color[0] = color[0]*0.5 + random.random()*0.5
+		#color[1] = color[1]*0.5 + random.random()*0.5
+		#color[2] = color[2]*0.5 + random.random()*0.5
 		#print color
 	return core.Level([],lv,[])
 	
@@ -38,9 +40,8 @@ print "jump on up!"
 print "AAAANNNDD !"
 #time.sleep(1)
 print "GO!"
+
 gameCore = core.Core()
-testgo = core.GameObject([[makeGfxBox(50,50),[10,0],None],[makeGfxBox(50,50),[-50,50],[0]]])
-#testgo.SetPos(10,10)
 player = core.Player()
 player.SetPos(0,50)
 player.Body.setMass(1)

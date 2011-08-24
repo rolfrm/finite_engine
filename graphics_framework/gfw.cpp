@@ -7,7 +7,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <list>
-#include "defaultshader.h"
 void printLog(GLuint obj)
 {
     int infologLength = 0;
@@ -96,14 +95,11 @@ void Init(int width,int height, bool fullscreen, int FSAASamples){
 	}
 	glfwSetKeyCallback(keycallback);
 	glfwSetMouseButtonCallback(mousebuttoncallback);
-	glfwSetMousePosCallback(mouseposcallback);
-	std::cout << "Window opened\n";
-	
-	std::cout << "setting stuff.\n";
+	glfwSetMousePosCallback(mouseposcallback);;
 	glLoadIdentity();
 	glPointSize(3);
 	glColor4f(1,1,1,1);
-	glClearColor(0.5,0.6,0.7,1);
+	glClearColor(0,0,0,1);
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -114,7 +110,6 @@ void Init(int width,int height, bool fullscreen, int FSAASamples){
 		std::cout << "Error setting up GLEW!\n";
 	}
 	
-	ActiveShader = Shader(vs,fs);  
 }
 
 Vec ScreenToWorldCoordinates(Vec in){
@@ -148,6 +143,11 @@ void Draw(float x,float y, float rotation, Drawable* drw){
 	drw->Draw();
 }
 
+void Draw2(float x,float y, float rotation, Drawable* drw){
+	Draw(x,y,rotation,drw);
+}
+
+
 Texture::Texture(char* data, int width, int height, int colorChannels, int inputSize){
 	this->data = (float*)data;
 	this->width = width;
@@ -156,7 +156,6 @@ Texture::Texture(char* data, int width, int height, int colorChannels, int input
 	ColorChannels = colorChannels;
 	gltex = -1;
 	gltex = GetGLTexture();
-	std::cout << "GLTEX:"<< gltex <<"\n";
 		
 	}
 unsigned int Texture::GetGLTexture(){
@@ -304,12 +303,44 @@ void DrawableTest::Draw(){
 		glDrawArrays(GL_POINTS,0, 3);
 		glDisableVertexAttribArray(posAttribLoc);
 }
+Polygon::Polygon(){
+	
+}
 
-Polygon::Polygon(std::vector<float> vertexes, std::vector<int> indices, std::vector<float> colors, std::vector<float> uvs){
+unsigned int GenVBO(void * data, unsigned int lenBytes, unsigned int type, unsigned int glBufferType){
+	if(type == 0){
+		type = GL_STATIC_DRAW_ARB;
+	}else if(type == 1){
+		type = GL_DYNAMIC_DRAW_ARB;
+	}else{
+		type = GL_STREAM_DRAW_ARB;
+	}
+	
+	unsigned int output;
+	glGenBuffersARB(1,&output);
+	glBindBufferARB(glBufferType, output);
+	glBufferDataARB(glBufferType,lenBytes,data,type);
+	return output;
+	
+}
+
+Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int uvType){
+	drawType = GL_QUADS;
 	this->vertexes = vertexes;
+	this->indices = indices;
+	if(colors.size() > 0){
+			usingColor = true;
+	}
+	this->colors = colors;
+	usingUV = false;
+	if(uvs.size() > 0){
+		LoadUV(uvs,0);
+	}
+	
 	refreshVbos();
 	}
-Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv){
+
+Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int uvType){
 	drawType = GL_QUADS;
 	this->vertexes = std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv);
 	this->indices = std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li);
@@ -322,37 +353,37 @@ Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, uns
 		usingColor = false;
 	
 	}
+	usingUV = false;
 	if(luv > 0){
-		usingUV = true;
-		this->uvs = std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv);
-	}else{
-		usingUV = false;
+		std::vector<float> nuvs = std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv);
+		LoadUV(nuvs,0);
 	}
-	
 	
 	refreshVbos();
 	}
+	
+void Polygon::LoadUV(std::vector<float> uvVector, int drawType){
+	usingUV = true;
+	uvLoadedSize = uvVector.size()*sizeof(float);
+	uvLoadedType = drawType;
+	
+	uvVbo = GenVBO(&(uvVector[0]),uvLoadedSize,uvLoadedType,GL_ARRAY_BUFFER_ARB);
+}
+
+void Polygon::ReloadUV(std::vector<float> uvVector,unsigned int offset){
+	glBindBuffer(GL_ARRAY_BUFFER_ARB,uvVbo);
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, offset, uvVector.size()*sizeof(float), &(uvVector[0]));
+}
+
 
 void Polygon::refreshVbos(){
-	//std::cout << vertexes.size() << "\n";
-	glGenBuffersARB(1,&vertVbo);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB,4*vertexes.size(),&vertexes[0],GL_STATIC_DRAW_ARB);
-	
-	glGenBuffersARB(1,&(this->indiceVbo));
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);
-	glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER,4*indices.size(),&indices[0],GL_STATIC_DRAW_ARB);
+	//Load in constructor instead..
+	vertVbo = GenVBO(&vertexes[0],vertexes.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
+	indiceVbo = GenVBO(&indices[0],indices.size()*sizeof(int),0,GL_ELEMENT_ARRAY_BUFFER_ARB);
 	
 	if(usingColor){
-		glGenBuffersARB(1,&colorVbo);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB,colorVbo);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB,4*colors.size(),&colors[0],GL_STATIC_DRAW_ARB);
-		}
-	if(usingUV){
-		glGenBuffersARB(1,&uvVbo);
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB,uvVbo);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB,4*uvs.size(),&uvs[0],GL_STATIC_DRAW_ARB);
-		}
+		colorVbo = GenVBO(&colors[0],colors.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
+	}
 	
 	}
 	
@@ -364,6 +395,7 @@ void Polygon::Draw(){
 	glEnableVertexAttribArray(posAttribLoc);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertVbo);
 	glVertexAttribPointer(posAttribLoc,2,GL_FLOAT,0,0,NULL);
+	ActivateTextures();
 	if(usingColor){
 		glEnableVertexAttribArray(colorAttribLoc);
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, colorVbo);
@@ -378,7 +410,7 @@ void Polygon::Draw(){
 			glVertexAttribPointer(uvAttribLoc,2,GL_FLOAT,0,0,0);
 		
 	}
-	ActivateTextures();
+	
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);	
 	glDrawElements(drawType,indices.size(),GL_UNSIGNED_INT,0);
 	glDisableVertexAttribArray(posAttribLoc);
@@ -404,11 +436,20 @@ Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int
 	this->lines = lines;
 	this->charsPerLine = charsPerLine;
 	this->textStart = textStart;
+	
+	float verts[] = {0,0,0,1,1,1,1,0};
+	unsigned int indices[] = {0,1,2,3};
+	
+	Quad = Polygon(std::vector<float>(verts,verts + 8), std::vector<unsigned int>(indices, indices + 4),std::vector<float>(),std::vector<float>(),2);
+	Quad.AddTexture(FontTex,0);
 }
 void Text::SetText(std::string text){
 	this->text = text;
 }
 void Text::Draw(){
+	ActivateTextures();
+	float charSizeX = (tox - fromx)/charsPerLine;
+	float charSizeY = (toy - fromy)/lines;
 	for(int i = 0; i < text.length(); i++){
 		char letter = text[i];
 		int index = letter - this->textStart;
@@ -416,8 +457,9 @@ void Text::Draw(){
 			index = 0;
 		}
 		int line = index/charsPerLine;
-		float charSizeX = (tox - fromx)/charsPerLine;
-		std::cout << (int)letter << "\n";
+		
+		//std::cout << "Drawing a " << letter << "\n";
+		Quad.Draw();
 	}
 }
 

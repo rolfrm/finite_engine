@@ -6,10 +6,10 @@ import shaders
 from game_object import *
 class Core:
 	def __init__(self):
-		gfw.Init(800,800,False,2)
+		gfw.Init(1000,400,False,2)
 		self.s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 		gfw.SetActiveShader(self.s1);
-		gfw.Zoom(400,400)
+		gfw.Zoom(500,250)
 		self.PhysicsCore = physics.Core(100)
 		self.PhysicsCore.setGravity(0.0,-0.4)
 		self.GameObjects = []

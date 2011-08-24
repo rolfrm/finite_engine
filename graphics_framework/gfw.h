@@ -1,14 +1,6 @@
 #include <list>
 #include <string>
 #include <vector>
-/*class Vec2{
-	public:
-	Vec2(float x,float y);
-};
-class Vec3{
-	public:
-	Vec3(float x,float y, float z);
-};*/
 class Texture{
 	public:
 	Texture(char* data, int width, int height, int colorChannels, int inputSize);
@@ -46,12 +38,17 @@ class DrawableTest: public Drawable{
 #define LINES GL_LINES
 class Polygon:public Drawable{
 	public:
-	Polygon(std::vector<float> vertexes, std::vector<int> indices, std::vector<float> colors, std::vector<float> uvs);
-	Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv);
-	
+	Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int uvType = 0);
+	Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int uvType = 0);
+	Polygon();
 	
 	void Draw();
 	void SetDrawType(unsigned int);
+	void LoadUV(std::vector<float> uvVector, int drawType);
+	void ReloadUV(std::vector<float> uvVector,unsigned int offset = 0);
+	//void ReloadVBOS(std::vector<float> vbos);
+	
+	
 	bool usingColor,usingUV;
 	
 	std::vector<float> vertexes;
@@ -63,7 +60,8 @@ class Polygon:public Drawable{
 	unsigned int colorVbo;
 	
 	unsigned int uvVbo;
-	
+	unsigned int uvLoadedSize;
+	unsigned int uvLoadedType;
 	private:
 	void refreshVbos();
 	unsigned int drawType;
@@ -84,6 +82,7 @@ class Text:public Drawable{
 	int lines;
 	int charsPerLine;
 	int textStart;
+	Polygon Quad;
 };
 
 
