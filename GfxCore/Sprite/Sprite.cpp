@@ -6,9 +6,9 @@
  */
 
 #include "Sprite.hpp"
-#include "../../Dormir/Shapes/Polygon.h"
+#include "../../Physics/Shapes/Polygon.h"
 #include <math.h>
-#include "../../Dormir/Objects/PhysicsObject.h"
+#include "../../Physics/Objects/PhysicsObject.h"
 #include <iostream>
 //#include "../../TextureCoords.hpp"
 

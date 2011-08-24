@@ -1,4 +1,4 @@
-#include "Core/GraphicsCore.hpp"
+#include "GfxCore/GraphicsCore.hpp"
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,14 +6,14 @@
 #include <iostream>
 #include <stdio.h>
 #include <vector>
-#include "Core/Sprite/Sprite.hpp"
-#include "Core/Sprite/PolySprite.hpp"
+#include "GfxCore/Sprite/Sprite.hpp"
+#include "GfxCore/Sprite/PolySprite.hpp"
 #include <math.h>
-#include "Dormir/Shapes/PolygonGenerator.hpp"
+#include "Physics/Shapes/PolygonGenerator.hpp"
 //#include "Dare/TextureCoords.hpp"
-#include "Dormir/PhysicsCore.h"
-#include "Dormir/Objects/PhysicsObject.h"
-#include "Dormir/Objects/Constraint.hpp"
+#include "Physics/PhysicsCore.h"
+#include "Physics/Objects/PhysicsObject.h"
+#include "Physics/Objects/Constraint.hpp"
 
 Dormir::Core pCore(400);
 Dormir::GraphicsCore gCore(1440,900);
@@ -23,8 +23,8 @@ Dormir::GraphicsCore gCore(1440,900);
 int main(int argc,char ** argv){
 	pCore.setGravity(0,-0.4);
 
-	gCore.GenerateTexture("Cube.png");
-	gCore.GenerateTexture("stagePart5.png");
+	gCore.GenerateTexture("Sprites/stagePart1.png");
+	gCore.GenerateTexture("Sprites/stagePart4.png");
 
 	Dormir::PhysicsObject O;
 	O.LoadPolygon(Dormir::GenerateBox(700,650,200,100));
@@ -32,7 +32,7 @@ int main(int argc,char ** argv){
 	pCore.LoadObject(&O);
 
 	Dormir::Sprite S(200,100);
-	S.SetTexture(gCore.GetTexture("stagePart5.png"));
+	S.SetTexture(gCore.GetTexture("Sprites/stagePart4.png"));
 	S.setReference(&O);
 
 	gCore.LoadSprite(&S);
@@ -43,7 +43,7 @@ int main(int argc,char ** argv){
 	pCore.LoadObject(&O2);
 
 	Dormir::Sprite S2(100,100);
-	S2.SetTexture(gCore.GetTexture("Cube.png"));
+	S2.SetTexture(gCore.GetTexture("Sprites/stagePart1.png"));
 	S2.setReference(&O2);
 
 	gCore.LoadSprite(&S2);
