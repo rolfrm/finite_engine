@@ -81,7 +81,6 @@ void main(){
 }
 """
 
-#lol?
 
 s1 = gfw.Shader(vs,fs)
 gfw.SetActiveShader(s1);
