@@ -1,0 +1,70 @@
+#include "Core/GraphicsCore.hpp"
+#include <time.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string>
+#include <iostream>
+#include <stdio.h>
+#include <vector>
+#include "Core/Sprite/Sprite.hpp"
+#include "Core/Sprite/PolySprite.hpp"
+#include <math.h>
+#include "Dormir/Shapes/PolygonGenerator.hpp"
+//#include "Dare/TextureCoords.hpp"
+#include "Dormir/PhysicsCore.h"
+#include "Dormir/Objects/PhysicsObject.h"
+#include "Dormir/Objects/Constraint.hpp"
+
+Dormir::Core pCore(400);
+Dormir::GraphicsCore gCore(1440,900);
+
+
+
+int main(int argc,char ** argv){
+	pCore.setGravity(0,-0.4);
+
+	gCore.GenerateTexture("Cube.png");
+	gCore.GenerateTexture("stagePart5.png");
+
+	Dormir::PhysicsObject O;
+	O.LoadPolygon(Dormir::GenerateBox(700,650,200,100));
+
+	pCore.LoadObject(&O);
+
+	Dormir::Sprite S(200,100);
+	S.SetTexture(gCore.GetTexture("stagePart5.png"));
+	S.setReference(&O);
+
+	gCore.LoadSprite(&S);
+
+	Dormir::PhysicsObject O2(1);
+	O2.LoadPolygon(Dormir::GenerateBox(700,450,100,100));
+
+	pCore.LoadObject(&O2);
+
+	Dormir::Sprite S2(100,100);
+	S2.SetTexture(gCore.GetTexture("Cube.png"));
+	S2.setReference(&O2);
+
+	gCore.LoadSprite(&S2);
+
+	Dormir::Joint J(&O,0,-50,&O2,0,250);
+
+	pCore.Joints.push_back(&J);
+
+	int running=!glfwGetKey( GLFW_KEY_ESC ) &&glfwGetWindowParam( GLFW_OPENED );
+	while(running){
+		double start=glfwGetTime();
+		glClear(GL_COLOR_BUFFER_BIT);
+		pCore.Run();
+		gCore.Run();
+		running= !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
+		glfwSwapBuffers();
+		double finish=glfwGetTime();
+		if(0.01-(finish-start)>0){
+			glfwSleep(0.01-(finish-start));
+		}
+	}
+
+
+}
