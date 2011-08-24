@@ -37,8 +37,7 @@ namespace Dormir{
 			double vl=v.GetNorm2();
 			v/=vl;
 			vl-=x;
-			v=v*vl*k;//-v*d*((F[1].getPhysicsObject()->GetVelocity()-F[0].getPhysicsObject()->GetVelocity())*v);
-			std::cout<<"spring force ("<<v.x<<","<<v.y<<")\n";
+			v=v*vl*k;//-((F[1].getPhysicsObject()->GetVelocity()-F[0].getPhysicsObject()->GetVelocity())*d);
 			F[1].getPhysicsObject()->AddForce(v*(-1),F[1].getPos());
 			F[0].getPhysicsObject()->AddForce(v,F[0].getPos());
 		}
@@ -69,6 +68,25 @@ namespace Dormir{
 			x=0;
 		else
 			x=nX;
+	}
+
+	Joint::Joint(PhysicsObject * O1,double x1,double y1,PhysicsObject * O2,double x2,double y2){
+		v_bias=0.2;
+		P[0].SetPos(Vec2(x1,y1));
+		P[0].setPhysicsObject(O1);
+		O1->AttachPoint(&P[0]);
+		P[1].SetPos(Vec2(x2,y2));
+		P[1].setPhysicsObject(O2);
+		O2->AttachPoint(&P[1]);
+	}
+
+	Joint::~Joint(){
+		if(P[0].getPhysicsObject()!=NULL){
+			P[0].getPhysicsObject()->DetachPoint(&P[0]);
+		}
+		if(P[1].getPhysicsObject()!=NULL){
+			P[1].getPhysicsObject()->DetachPoint(&P[1]);
+		}
 	}
 
 }

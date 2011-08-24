@@ -21,26 +21,10 @@ namespace Dormir{
 	class Joint;
 
 
-	class CollisionNode{
-		public:
-			Dormir::PhysicsObject * from,* to;
-			Vec2 axis,contact,rf,rt,tangent;
-			double intersection,I,T;
-		Dormir::PhysicsObject * GetFrom(){
-			return from;
-		}
-		Dormir::PhysicsObject * GetTo(){
-			return to;
-		}
-		double GetIntersection(){
-			return intersection;
-		}		
-		double GetI(){
-			return I;
-		}
-		double GetT(){
-			return T;
-		}
+	struct CollisionNode{
+		Dormir::PhysicsObject * from,* to;
+		Vec2 axis,contact,rf,rt,tangent;
+		double intersection,I,T;
 	};
 
 	class Core{
@@ -52,8 +36,10 @@ namespace Dormir{
 
 		bool LoadObject(Dormir::PhysicsObject *);
 		bool LoadConstraint(Dormir::Constraint *);
+		bool LoadJoint(Dormir::Joint *);
 		bool UnloadObject(Dormir::PhysicsObject *);
 		bool UnloadConstraint(Dormir::Constraint *);
+		bool UnloadJoint(Dormir::Joint *);
 
 		void AddCollisionNode(CollisionNode);
 
@@ -67,11 +53,8 @@ namespace Dormir{
 
 		void setSlopOverlap(double d);
 		void setBiasOverlap(double d){biasOverlap=Clamp(d,0.1,0.3);};
-		double Clamp(double value,double lower,double upper);
-		CollisionNode GetNextCollision();
-		bool CollisionsReady();
-		std::list<CollisionNode> savedNodes;
 
+		double Clamp(double value,double lower,double upper);
 
 		Dormir::PhysicsObject * PointInsideObject(int x,int y);
 		Dormir::PhysicsObject * PointInsideObject(Vec2);

@@ -27,15 +27,14 @@ namespace Dormir{
 
 	class Fixpoint;
 
-	
-	
+
 
 	class PhysicsObject{
 	public:
 		PhysicsObject(Vec2 Pos,double e,double mu,double mass);
 		PhysicsObject(Vec2 Pos,double e,double mu);
 		PhysicsObject(Vec2);
-		PhysicsObject(double mass,double e,double mu);
+		PhysicsObject(double mass,double e=0,double mu=0.6);
 		PhysicsObject();
 
 		void Advance();
@@ -72,7 +71,6 @@ namespace Dormir{
 		void setVelocity(double x,double y){Vel.x=x;Vel.y=y;};
 		void FindBounds();
 		void CalculateMomentofInertia();
-		int GetID();
 
 		virtual void OnCollision(CollisionNode *){};
 
@@ -84,7 +82,6 @@ namespace Dormir{
 		std::list<Dormir::Polygon> Body;
 		std::list<Fixpoint *> AttachedPoints;
 	protected:
-		void Init(Vec2 Pos,double e,double mu,double mass);
 		void AdvancePosition();
 		void AdvanceAngle();
 		void RevertPosition();
@@ -93,9 +90,8 @@ namespace Dormir{
 		Vec2 Pos,Vel;
 		double e,mu,mass,invMass,invInertia,inertia,angle,angleSpeed;
 		Dormir::Core * World;
-		
-		int ID;
 	};
+
 }
 
 

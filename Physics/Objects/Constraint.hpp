@@ -83,9 +83,11 @@ private:
 class Joint{
 public:
 	Joint(){v_bias=0.2;};
+	Joint(PhysicsObject * O1,double x1,double y1,PhysicsObject * O2,double x2,double y2);
+	~Joint();
 
 	Fixpoint P[2];
-	double v_bias,slop;
+	double v_bias;
 	Vec2 AccummulatedImpulse;
 };
 

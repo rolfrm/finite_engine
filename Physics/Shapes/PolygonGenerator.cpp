@@ -52,8 +52,7 @@ namespace Dormir{
 	};
 
 
-	std::list<Polygon> GenerateLand(char * hlist2,unsigned int size,double Length,double Height,double Depth){
-		double * hlist = (double*)hlist2;
+	std::list<Polygon> GenerateLand(double hlist[],unsigned int size,double Length,double Height,double Depth){
 		std::vector<std::vector<float> > Output;
 		std::vector<float > Input;
 		for(unsigned int i=0;i<size;i++)
@@ -74,6 +73,13 @@ namespace Dormir{
 			P.AddVertex((step)*Length,-Depth);
 			ReturnP.push_back(P);
 
+		}
+
+		for(std::list<Polygon>::iterator it=ReturnP.begin();it!=ReturnP.end();it++){
+			std::cout<<"POlygon\n";
+			for(unsigned int i=0;i<it->Vertex.size();i++){
+				it->Vertex[i].Print();
+			}
 		}
 
 		return ReturnP;
