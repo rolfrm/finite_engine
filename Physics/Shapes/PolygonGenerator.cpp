@@ -76,6 +76,13 @@ namespace Dormir{
 
 		}
 
+		for(std::list<Polygon>::iterator it=ReturnP.begin();it!=ReturnP.end();it++){
+			std::cout<<"POlygon\n";
+			for(unsigned int i=0;i<it->Vertex.size();i++){
+				it->Vertex[i].Print();
+			}
+		}
+
 		return ReturnP;
 	};
 
