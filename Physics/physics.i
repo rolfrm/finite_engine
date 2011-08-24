@@ -5,10 +5,16 @@
 #include "Shapes/Polygon.h"
 #include "Math/Math.hpp"
 #include "Objects/Constraint.hpp"
+#include "Shapes/PolygonGenerator.hpp"
 %}
 
-%include "PhysicsCore.h"
+
+%include "std_list.i"
+%include "std_vector.i"
 %include "Objects/PhysicsObject.h"
+%include "PhysicsCore.h"
 %include "Shapes/Polygon.h"
 %include "Math/Math.hpp"
 %include "Objects/Constraint.hpp"
+%include "Shapes/PolygonGenerator.hpp"
+

@@ -173,12 +173,10 @@ box1 = makeGfxBox(100,100)
 man1 = man(0,0)
 noise = (numpy.random.random(16*16*4)).astype(numpy.float32)
 #noise = numpy.ones(16*16*4,dtype=numpy.float32)*0.5
+map1 = worldgen.MakeMap().astype(numpy.float32)
+print map1[[[1,2],[2,3]]]
 
 tex = gfw.Texture(worldgen.MakeMap().tostring(),64,64,1)
-print noise
-
-
-
 
 pc = physics.Core(100)
 objlist = []
