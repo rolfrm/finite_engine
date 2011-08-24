@@ -11,7 +11,7 @@ class Vec3{
 };*/
 class Texture{
 	public:
-	Texture(char* data, int width, int height, int colorChannels, int inputSize);
+	Texture(char* data, int width, int height, int colorChannels);
 	
 	unsigned int GetGLTexture();
 	private:
@@ -19,7 +19,6 @@ class Texture{
 	int width;
 	int height;
 	int ColorChannels;
-	unsigned int InputSize;
 	unsigned int gltex;
 	
 };
@@ -68,22 +67,13 @@ class Polygon:public Drawable{
 	
 };
 
-class Text:public Drawable{
+/*class Text:public Drawable{
 	public:
-	Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart);
+	Text(std::string fontbase);
 	void SetText(std::string text);
-	void Draw();
-	private:
-	std::string text;
-	float fromx;
-	float tox;
-	float fromy;
-	float toy;
-	int lines;
-	int charsPerLine;
-	int textStart;
+	
 };
-
+*/
 
 /*
 class Framebuffer{
