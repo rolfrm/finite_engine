@@ -45,6 +45,7 @@ gfw.Init(300,300,False)
 s1 = gfw.Shader(vs,fs)
 
 a = gfw.Polygon(ar2.tostring(),len(ar2),indices.tostring(),len(indices),colors.tostring(),len(colors),uvs.tostring(),len(uvs))
+
 gfw.SetActiveShader(s1);
 
 tex = gfw.Texture(noise.tostring(),16,16)
