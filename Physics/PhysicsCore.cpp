@@ -176,6 +176,16 @@ namespace Dormir{
 		return true;
 	}
 
+	bool Core::LoadJoint(Dormir::Joint * J){
+		for(unsigned int i=0;i<Joints.size();i++){
+			if(Joints[i]==J)
+				return false;
+		}
+		Joints.push_back(J);
+		return true;
+	}
+
+
 	bool Core::UnloadObject(Dormir::PhysicsObject * obj){
 		for(std::list<Dormir::PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
 			if(obj==*it){
@@ -185,6 +195,16 @@ namespace Dormir{
 		}
 		return false;
 
+	}
+
+	bool Core::UnloadJoint(Dormir::Joint * J){
+		for(unsigned int i=0;i<Joints.size();i++){
+			if(Joints[i]==J){
+				Joints.erase(Joints.begin()+i);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void Core::AddCollisionNode(Dormir::CollisionNode N){
