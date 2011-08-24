@@ -79,6 +79,17 @@ namespace Dormir{
 		P[1].setPhysicsObject(O2);
 		O2->AttachPoint(&P[1]);
 	}
+	Joint::Joint(Dormir::PhysicsObject * O1,Dormir::PhysicsObject * O2,double x,double y){
+		v_bias=0.2;
+
+		Vec2 RotCenter(x,y);
+		P[0].SetPos(RotCenter-O1->GetPosition());
+		P[0].setPhysicsObject(O1);
+		O1->AttachPoint(&P[0]);
+		P[1].SetPos(RotCenter-O2->GetPosition());
+		P[1].setPhysicsObject(O2);
+		O2->AttachPoint(&P[1]);
+	}
 
 	Joint::~Joint(){
 		if(P[0].getPhysicsObject()!=NULL){

@@ -48,7 +48,7 @@ int main(int argc,char ** argv){
 
 	gCore.LoadSprite(&S2);
 
-	Dormir::Joint J(&O,0,-50,&O2,0,250);
+	Dormir::Joint J(&O,&O2,700,550);
 
 	pCore.Joints.push_back(&J);
 

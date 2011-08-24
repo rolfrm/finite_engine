@@ -84,6 +84,7 @@ class Joint{
 public:
 	Joint(){v_bias=0.2;};
 	Joint(PhysicsObject * O1,double x1,double y1,PhysicsObject * O2,double x2,double y2);
+	Joint(PhysicsObject * O1,PhysicsObject * O2,double x,double y);
 	~Joint();
 
 	Fixpoint P[2];
