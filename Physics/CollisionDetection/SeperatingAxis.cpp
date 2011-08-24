@@ -1,3 +1,4 @@
+#include <armadillo>
 #include "../Shapes/Polygon.h"
 #include "../Objects/PhysicsObject.h"
 #include "../PhysicsCore.h"
