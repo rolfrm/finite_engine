@@ -35,7 +35,7 @@ namespace Dormir{
 		PhysicsObject(Vec2 Pos,double e,double mu,double mass);
 		PhysicsObject(Vec2 Pos,double e,double mu);
 		PhysicsObject(Vec2);
-		PhysicsObject(double mass,double e,double mu);
+		PhysicsObject(double mass,double e=0,double mu=0.6);
 		PhysicsObject();
 
 		void Advance();

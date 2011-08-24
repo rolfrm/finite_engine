@@ -52,8 +52,10 @@ namespace Dormir{
 
 		bool LoadObject(Dormir::PhysicsObject *);
 		bool LoadConstraint(Dormir::Constraint *);
+		bool LoadJoint(Dormir::Joint *);
 		bool UnloadObject(Dormir::PhysicsObject *);
 		bool UnloadConstraint(Dormir::Constraint *);
+		bool UnloadJoint(Dormir::Joint *);
 
 		void AddCollisionNode(CollisionNode);
 
