@@ -81,6 +81,8 @@ void main(){
 }
 """
 
+#lol?
+
 s1 = gfw.Shader(vs,fs)
 gfw.SetActiveShader(s1);
 gfw.Zoom(50,50)
