@@ -13,3 +13,5 @@
 %template(FloatVector) std::vector<float>;
 %template(KeyEventList) std::list<KeyEvent>;
 %template(MouseEventList) std::list<MouseEvent>;
+
+

@@ -48,8 +48,8 @@ def diamondStep(curmap,scaling):
 				nval += curmap[x][y+1]
 				n +=1
 			nval /=n
-			#nval += random.random()*scaling			
-			nval += random.gauss(0,1)*scaling
+			nval += random.random()*scaling			
+			#	nval += random.gauss(0,1)*scaling
 			curmap[x,y] = nval
 	return curmap
 	
@@ -68,8 +68,8 @@ def squareStep(curmap,scaling):
 			x = i*2 +1
 			y = j*2 +1
 			nval = (newmap[x-1][y-1] + newmap[x+1][y-1] + newmap[x-1][y+1] + newmap[x+1][y+1])/4
-			#nval += random.random()*scaling
-			nval += random.gauss(0,1)*scaling
+			nval += random.random()*scaling
+			#nval += random.gauss(0,1)*scaling
 			newmap[x][y] = nval
 			
 	return newmap
@@ -113,7 +113,7 @@ def ErosionFilter(Map, iterations):
 	saveMap(Map,"m.png")
 	saveMap(totalheight,"th.png")
 	counter = 0
-	water += 0.5
+	#water += 0.5
 	for i in range(0,iterations):
 		
 		counter +=1	
@@ -173,10 +173,10 @@ def ErosionFilter(Map, iterations):
 				water += 0.1
 				counter = 0
 			if k == 'b' and counter > 10:
-				water[:water.shape[0]/8,:water.shape[1]/8] += 50
+				water[:water.shape[0]/8,:water.shape[1]/8] += 1
 	return totalheight
 
 if __name__ == "__main__":
 	Map = MakeMap()
-	ErosionFilter(Map,505)
+	ErosionFilter(Map,10000)
 	

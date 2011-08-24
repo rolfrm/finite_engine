@@ -335,7 +335,7 @@ namespace Dormir{
 		return out;
 	}
 	bool Core::CollisionsReady(){
-	return savedNodes.size() > 0;
+		return savedNodes.size() > 0;
 	}
 
 }
