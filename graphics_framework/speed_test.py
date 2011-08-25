@@ -17,7 +17,7 @@ varying vec3 vColor;
 varying vec2 vuv;
 void main(){
 vColor = color;
-vuv = uv;//vec2(0.5,0.5);
+vuv = uv;
  vec2 npos = vec2(pos.x*cos(Rotation) - pos.y*sin(Rotation), pos.y*cos(Rotation)+ pos.x*sin(Rotation));
  gl_Position=vec4((npos+vec2(Xoff,Yoff))/Zoom,0,1);
  }
@@ -25,14 +25,11 @@ vuv = uv;//vec2(0.5,0.5);
 
 fs = """
 uniform sampler2D tex0;
-uniform sampler2D tex1;
 uniform int tex0Active;
 varying vec3 vColor;
 varying vec2 vuv;
 void main(){
 	vec4 tex = texture2D(tex0,vuv);
-	vec3 col = tex;// + vColor*0.1;
-	col.x -=vuv.x;
 	if(tex0Active == 1){
 		gl_FragColor= vec4(tex);
 	}else{
