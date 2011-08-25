@@ -46,7 +46,7 @@ noise = (numpy.random.random(128*8)*255).astype(numpy.uint8)
 import Image
 noise = Image.open('UV_Test_Map.jpg')
 
-gfw.Init(600,600,False)
+gfw.Init(1400,900,False)
 s1 = gfw.Shader(vs,fs)
 
 a = gfw.Polygon(ar2.tostring(),len(ar2),indices.tostring(),len(indices),colors.tostring(),len(colors),uvs.tostring(),len(uvs),0,0)
@@ -54,7 +54,7 @@ gfw.Zoom(1,1)
 gfw.SetActiveShader(s1);
 print noise.size
 tex = gfw.Texture(noise.tostring(),noise.size[0],noise.size[1],3,1)
-#a.AddTexture(tex,0);
+a.AddTexture(tex,0);
 i = 0.0001
 Text = gfw.Text(tex,0,1,0,1,10,10,32)
 Text.SetText("Hello fonts")
@@ -73,7 +73,7 @@ while True:
 		gfw.Draw(0,1,i,a)
 		gfw.Draw(-0.5,-0.5,0,Text);
 		#print i
-		#print time.time()-t
+		print time.time()-t
 		gfw.Refresh()
 		time.sleep(0.01)
 		
