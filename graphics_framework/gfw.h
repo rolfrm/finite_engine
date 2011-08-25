@@ -20,7 +20,7 @@ class Drawable{
 	public:
 	Drawable();
 	void ActivateTextures();
-	virtual void Draw();
+	virtual void Draw(float x, float y, float a);
 	void AddTexture(Texture * tex,int textureChannel);
 	private:
 	Texture* boundTextures[2];
@@ -38,11 +38,11 @@ class DrawableTest: public Drawable{
 #define LINES GL_LINES
 class Polygon:public Drawable{
 	public:
-	Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType,unsigned int uvType);
-	Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int vertType,unsigned int uvType);
+	Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType = 0,unsigned int uvType = 0);
+	Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int vertType = 0,unsigned int uvType= 0);
 	Polygon();
 	
-	void Draw();
+	void Draw(float x, float y, float rotation);
 	void SetDrawType(unsigned int);
 	void LoadUV(std::vector<float> uvVector, int drawType);
 	void ReloadUV(std::vector<float> uvVector,unsigned int offset = 0);
@@ -73,7 +73,7 @@ class Text:public Drawable{
 	public:
 	Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart);
 	void SetText(std::string text);
-	void Draw();
+	void Draw(float x, float y, float rotation);
 	private:
 	std::string text;
 	float fromx;

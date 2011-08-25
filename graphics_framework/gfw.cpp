@@ -136,11 +136,9 @@ void DeInit(){
 }
 
 void Draw(float x,float y, float rotation, Drawable* drw){
-	ActiveShader.SetUniform1f(x,"Xoff");
-	ActiveShader.SetUniform1f(y,"Yoff");
-	ActiveShader.SetUniform1f(rotation,"Rotation");
 	
-	drw->Draw();
+	
+	drw->Draw(x,y,rotation);
 }
 
 void Draw2(float x,float y, float rotation, Drawable* drw){
@@ -156,7 +154,6 @@ Texture::Texture(char* data, int width, int height, int colorChannels, int input
 	ColorChannels = colorChannels;
 	gltex = -1;
 	gltex = GetGLTexture();
-		
 	}
 unsigned int Texture::GetGLTexture(){
 	if(gltex == (unsigned int)-1){
@@ -251,7 +248,7 @@ Drawable::Drawable(){
 		boundTextures[i] = NULL;
 		}
 	}
-void Drawable::Draw(){
+void Drawable::Draw(float x, float y, float rotation){
 	
 	}
 void Drawable::AddTexture(Texture * tex,int textureChannel){
@@ -390,8 +387,10 @@ void Polygon::refreshVbos(){
 	
 	}
 	
-void Polygon::Draw(){
-	
+void Polygon::Draw(float x, float y, float rotation){
+	ActiveShader.SetUniform1f(x,"Xoff");
+	ActiveShader.SetUniform1f(y,"Yoff");
+	ActiveShader.SetUniform1f(rotation,"Rotation");
 	int posAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"pos");
 	int colorAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"color");
 	int uvAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"uv");
@@ -448,7 +447,7 @@ Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int
 void Text::SetText(std::string text){
 	this->text = text;
 }
-void Text::Draw(){
+void Text::Draw(float x, float y, float rotation){
 	ActivateTextures();
 	float charSizeX = (tox - fromx)/charsPerLine;
 	float charSizeY = (toy - fromy)/lines;
@@ -477,7 +476,7 @@ void Text::Draw(){
 		float y2 = y1 + charSizeY;
 		float newuvs[] ={x1,y2,x1,y1,x2,y1,x2,y2};
 		Quad.ReloadUV(std::vector<float>(newuvs,newuvs+8));
-		Draw2(-10 + column*0.9,-newlines,0,&Quad);
+		Draw2(x + column*0.9,y-newlines,0,&Quad);
 		column +=1;
 		
 	}
