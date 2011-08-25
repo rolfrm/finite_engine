@@ -36,7 +36,7 @@ void main(){
 	if(tex0Active == 1){
 		gl_FragColor= vec4(tex);
 	}else{
-		gl_FragColor = vec4(vColor,1);
+		gl_FragColor = vec4(vColor,1.0);
 	}
 }
 """
@@ -76,7 +76,7 @@ while True:
 		gfw.Draw(0,1,i,a)
 		gfw.Draw(-0.5,-0.5,0,Text);
 		#print i
-		print time.time()-t
+		#print time.time()-t
 		gfw.Refresh()
 		time.sleep(0.01)
 		
