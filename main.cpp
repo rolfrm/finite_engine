@@ -38,7 +38,7 @@ int main(int argc,char ** argv){
 	gCore.LoadSprite(&S);
 
 	Dormir::PhysicsObject O2(1);
-	O2.LoadPolygon(Dormir::GenerateBox(700,450,100,100));
+	O2.LoadPolygon(Dormir::GenerateBox(900,650,100,100));
 
 	pCore.LoadObject(&O2);
 
@@ -50,7 +50,7 @@ int main(int argc,char ** argv){
 
 
 	Dormir::PhysicsObject O3(1);
-	O3.LoadPolygon(Dormir::GenerateBox(700,250,100,100));
+	O3.LoadPolygon(Dormir::GenerateBox(1200,650,100,100));
 
 	pCore.LoadObject(&O3);
 
@@ -60,11 +60,11 @@ int main(int argc,char ** argv){
 
 	gCore.LoadSprite(&S3);
 
-	Dormir::Joint J(&O,&O2,900,550);
+	Dormir::Joint J(&O,&O2,700,550);
 
 	pCore.LoadJoint(&J);
 
-	Dormir::Joint J2(&O2,&O3,700,350);
+	Dormir::Joint J2(&O2,&O3,1150,650);
 	pCore.LoadJoint(&J2);
 
 	int running=!glfwGetKey( GLFW_KEY_ESC ) &&glfwGetWindowParam( GLFW_OPENED );
