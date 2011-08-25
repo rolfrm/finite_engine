@@ -45,8 +45,6 @@ def MakeCompleteObject(verts,color = [],uvs = []):
 	o1 = physics.PhysicsObject()
 	p1 = physics.Polygon()
 	
-	
-	
 	for i in range(0,len(verts),2):
 		p1.AddVertex(verts[i],verts[i+1])
 	if len(color) == 3:
@@ -62,7 +60,9 @@ def MakeCompleteObject(verts,color = [],uvs = []):
 		verts[i+1] -= p2.y
 	gfx = MakePolygon(verts,range(0,len(verts)),color,uvs)
 	return core.GameObject(gfx,o1)
-	print p2.x,p2.y
+	
+	
+	
 def MakePhysicsPolygon(vertexes):
 	o1 = physics.PhysicsObject()
 	p1 = physics.Polygon()

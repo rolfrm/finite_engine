@@ -38,15 +38,16 @@ class DrawableTest: public Drawable{
 #define LINES GL_LINES
 class Polygon:public Drawable{
 	public:
-	Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int uvType = 0);
-	Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int uvType = 0);
+	Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType,unsigned int uvType);
+	Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int vertType,unsigned int uvType);
 	Polygon();
 	
 	void Draw();
 	void SetDrawType(unsigned int);
 	void LoadUV(std::vector<float> uvVector, int drawType);
 	void ReloadUV(std::vector<float> uvVector,unsigned int offset = 0);
-	//void ReloadVBOS(std::vector<float> vbos);
+	void LoadVerts(std::vector<float> vertVector, int drawType);
+	void ReloadVerts(std::vector<float> vertVector,unsigned int offset = 0);
 	
 	
 	bool usingColor,usingUV;

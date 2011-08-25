@@ -11,6 +11,7 @@
 %include "std_list.i"
 %include "gfw.h"
 %template(FloatVector) std::vector<float>;
+%template(IntVector) std::vector<int>;
 %template(KeyEventList) std::list<KeyEvent>;
 %template(MouseEventList) std::list<MouseEvent>;
 

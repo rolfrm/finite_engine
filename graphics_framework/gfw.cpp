@@ -324,9 +324,9 @@ unsigned int GenVBO(void * data, unsigned int lenBytes, unsigned int type, unsig
 	
 }
 
-Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int uvType){
+Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType,unsigned int uvType){
 	drawType = GL_QUADS;
-	this->vertexes = vertexes;
+	LoadVerts(vertexes,vertType);
 	this->indices = indices;
 	if(colors.size() > 0){
 			usingColor = true;
@@ -334,15 +334,15 @@ Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices,
 	this->colors = colors;
 	usingUV = false;
 	if(uvs.size() > 0){
-		LoadUV(uvs,0);
+		LoadUV(uvs,uvType);
 	}
 	
 	refreshVbos();
 	}
 
-Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int uvType){
+Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int vertType,unsigned int uvType){
 	drawType = GL_QUADS;
-	this->vertexes = std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv);
+	LoadVerts(std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv),vertType);
 	this->indices = std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li);
 	
 	if(lc > 0){
@@ -356,7 +356,7 @@ Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, uns
 	usingUV = false;
 	if(luv > 0){
 		std::vector<float> nuvs = std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv);
-		LoadUV(nuvs,0);
+		LoadUV(nuvs,uvType);
 	}
 	
 	refreshVbos();
@@ -364,21 +364,24 @@ Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, uns
 	
 void Polygon::LoadUV(std::vector<float> uvVector, int drawType){
 	usingUV = true;
-	uvLoadedSize = uvVector.size()*sizeof(float);
-	uvLoadedType = drawType;
-	
-	uvVbo = GenVBO(&(uvVector[0]),uvLoadedSize,uvLoadedType,GL_ARRAY_BUFFER_ARB);
+	uvVbo = GenVBO(&(uvVector[0]),uvVector.size()*sizeof(float),drawType,GL_ARRAY_BUFFER_ARB);
 }
 
 void Polygon::ReloadUV(std::vector<float> uvVector,unsigned int offset){
 	glBindBuffer(GL_ARRAY_BUFFER_ARB,uvVbo);
 	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, offset, uvVector.size()*sizeof(float), &(uvVector[0]));
 }
-
+void Polygon::LoadVerts(std::vector<float> vertVector, int drawType){
+	vertVbo = GenVBO(&(vertVector[0]),vertVector.size()*sizeof(float),drawType,GL_ARRAY_BUFFER_ARB);
+}
+void Polygon::ReloadVerts(std::vector<float> vertVector,unsigned int offset){
+	glBindBuffer(GL_ARRAY_BUFFER_ARB,vertVbo);
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, offset, vertVector.size()*sizeof(float), &(vertVector[0]));
+}
 
 void Polygon::refreshVbos(){
 	//Load in constructor instead..
-	vertVbo = GenVBO(&vertexes[0],vertexes.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
+	//vertVbo = GenVBO(&vertexes[0],vertexes.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
 	indiceVbo = GenVBO(&indices[0],indices.size()*sizeof(int),0,GL_ELEMENT_ARRAY_BUFFER_ARB);
 	
 	if(usingColor){
@@ -428,7 +431,7 @@ void Polygon::SetDrawType(unsigned int i){
 	drawType = i;
 }
 Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart){
-	AddTexture(FontTex,0);
+	//AddTexture(FontTex,0);
 	this->fromx = fromx;
 	this->tox = tox;
 	this->fromy = fromy;
@@ -439,8 +442,8 @@ Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int
 	
 	float verts[] = {0,0,0,1,1,1,1,0};
 	unsigned int indices[] = {0,1,2,3};
-	
-	Quad = Polygon(std::vector<float>(verts,verts + 8), std::vector<unsigned int>(indices, indices + 4),std::vector<float>(),std::vector<float>(),2);
+	float uvs[] = {0,0,0,1,1,1,1,0};
+	Quad = Polygon(std::vector<float>(verts,verts + 8), std::vector<unsigned int>(indices, indices + 4),std::vector<float>(),std::vector<float>(uvs,uvs+8),0,2);
 	Quad.AddTexture(FontTex,0);
 }
 void Text::SetText(std::string text){
@@ -450,6 +453,7 @@ void Text::Draw(){
 	ActivateTextures();
 	float charSizeX = (tox - fromx)/charsPerLine;
 	float charSizeY = (toy - fromy)/lines;
+	Zoom(10,10);
 	for(int i = 0; i < text.length(); i++){
 		char letter = text[i];
 		int index = letter - this->textStart;
@@ -457,10 +461,18 @@ void Text::Draw(){
 			index = 0;
 		}
 		int line = index/charsPerLine;
+		int col = index - line*charsPerLine;
 		
-		//std::cout << "Drawing a " << letter << "\n";
-		Quad.Draw();
+		float x1 = col*charSizeX;
+		float x2 = x1 + charSizeX;
+		float y1 = line*charSizeY;
+		float y2 = y1 + charSizeY;
+		float newuvs[] ={x1,y1,x2,y1,x2,y2,x1,y2};
+		Quad.ReloadUV(std::vector<float>(newuvs,newuvs+8));
+		Draw2(-10 + i,0,0,&Quad);
+		
 	}
+	Zoom(1,1);
 }
 
 
