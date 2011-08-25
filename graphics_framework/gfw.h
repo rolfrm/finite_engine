@@ -83,6 +83,7 @@ class Text:public Drawable{
 	int lines;
 	int charsPerLine;
 	int textStart;
+	float spacing;
 	Polygon Quad;
 };
 

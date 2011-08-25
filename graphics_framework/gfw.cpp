@@ -99,7 +99,7 @@ void Init(int width,int height, bool fullscreen, int FSAASamples){
 	glLoadIdentity();
 	glPointSize(3);
 	glColor4f(1,1,1,1);
-	glClearColor(0,0,0,1);
+	glClearColor(0.5,0.6,0.7,1);
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -439,10 +439,9 @@ Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int
 	this->lines = lines;
 	this->charsPerLine = charsPerLine;
 	this->textStart = textStart;
-	
 	float verts[] = {0,0,0,1,1,1,1,0};
 	unsigned int indices[] = {0,1,2,3};
-	float uvs[] = {0,0,0,1,1,1,1,0};
+	float uvs[] = {0,1,0,0,1,0,1,1};
 	Quad = Polygon(std::vector<float>(verts,verts + 8), std::vector<unsigned int>(indices, indices + 4),std::vector<float>(),std::vector<float>(uvs,uvs+8),0,2);
 	Quad.AddTexture(FontTex,0);
 }
@@ -453,9 +452,18 @@ void Text::Draw(){
 	ActivateTextures();
 	float charSizeX = (tox - fromx)/charsPerLine;
 	float charSizeY = (toy - fromy)/lines;
-	Zoom(10,10);
+	Zoom(20,20);
+	int newlines = 0;
+	int column = 0;
 	for(int i = 0; i < text.length(); i++){
+		
 		char letter = text[i];
+		if(letter =='\n'){
+			newlines +=1;
+			column = 0;
+			continue;
+		}
+		
 		int index = letter - this->textStart;
 		if( index < 0){
 			index = 0;
@@ -464,12 +472,13 @@ void Text::Draw(){
 		int col = index - line*charsPerLine;
 		
 		float x1 = col*charSizeX;
-		float x2 = x1 + charSizeX;
+		float x2 = x1 + charSizeX; 
 		float y1 = line*charSizeY;
 		float y2 = y1 + charSizeY;
-		float newuvs[] ={x1,y1,x2,y1,x2,y2,x1,y2};
+		float newuvs[] ={x1,y2,x1,y1,x2,y1,x2,y2};
 		Quad.ReloadUV(std::vector<float>(newuvs,newuvs+8));
-		Draw2(-10 + i,0,0,&Quad);
+		Draw2(-10 + column*0.9,-newlines,0,&Quad);
+		column +=1;
 		
 	}
 	Zoom(1,1);

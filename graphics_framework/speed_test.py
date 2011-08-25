@@ -62,9 +62,10 @@ Text.SetText("Hello fonts")
 
 while True:
 	try:
+		t = time.time()
 		a.ReloadUV(gfw.FloatVector([0.0,0.0, 0,1 ,1,1, 1.0,0]))
 		i += 0.001
-		t = time.time()
+		
 		s1.SetUniform3f(1.0,1.0,1.0,"Color")
 		a.ActivateTextures()
 		gfw.Draw(0,0,i,a)
@@ -73,8 +74,9 @@ while True:
 		gfw.Draw(0,1,i,a)
 		gfw.Draw(-0.5,-0.5,0,Text);
 		#print i
-		print time.time()-t
+		
 		gfw.Refresh()
+		print time.time()-t
 		time.sleep(0.01)
 		
 	except KeyboardInterrupt as ke:
