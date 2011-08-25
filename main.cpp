@@ -48,14 +48,35 @@ int main(int argc,char ** argv){
 
 	gCore.LoadSprite(&S2);
 
-	Dormir::Joint J(&O,&O2,700,550);
 
-	pCore.Joints.push_back(&J);
+	Dormir::PhysicsObject O3(1);
+	O3.LoadPolygon(Dormir::GenerateBox(700,250,100,100));
+
+	pCore.LoadObject(&O3);
+
+	Dormir::Sprite S3(100,100);
+	S3.SetTexture(gCore.GetTexture("Sprites/stagePart1.png"));
+	S3.setReference(&O3);
+
+	gCore.LoadSprite(&S3);
+
+	Dormir::Joint J(&O,&O2,900,550);
+
+	pCore.LoadJoint(&J);
+
+	Dormir::Joint J2(&O2,&O3,700,350);
+	pCore.LoadJoint(&J2);
 
 	int running=!glfwGetKey( GLFW_KEY_ESC ) &&glfwGetWindowParam( GLFW_OPENED );
 	while(running){
 		double start=glfwGetTime();
-		glClear(GL_COLOR_BUFFER_BIT);
+	//	glClear(GL_COLOR_BUFFER_BIT);
+		if(glfwGetKey(GLFW_KEY_F1)){
+			pCore.UnloadJoint(&J);
+		}
+		if(glfwGetKey(GLFW_KEY_F2)){
+			pCore.LoadJoint(&J);
+		}
 		pCore.Run();
 		gCore.Run();
 		running= !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
