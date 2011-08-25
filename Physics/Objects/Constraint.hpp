@@ -87,6 +87,8 @@ public:
 	Joint(PhysicsObject * O1,PhysicsObject * O2,double x,double y);
 	~Joint();
 
+	void setSlop(double nSlop);
+
 	Fixpoint P[2];
 	double v_bias;
 	Vec2 AccummulatedImpulse;
