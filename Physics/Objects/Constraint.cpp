@@ -70,12 +70,25 @@ namespace Dormir{
 			x=nX;
 	}
 
-	Joint::Joint(PhysicsObject * O1,double x1,double y1,PhysicsObject * O2,double x2,double y2){
+	Joint::Joint(PhysicsObject * O1,double x1,double y1,PhysicsObject * O2,double x2,double y2,double nSlop){
 		v_bias=0.2;
+		setSlop(nSlop);
 		P[0].SetPos(Vec2(x1,y1));
 		P[0].setPhysicsObject(O1);
 		O1->AttachPoint(&P[0]);
 		P[1].SetPos(Vec2(x2,y2));
+		P[1].setPhysicsObject(O2);
+		O2->AttachPoint(&P[1]);
+	}
+	Joint::Joint(Dormir::PhysicsObject * O1,Dormir::PhysicsObject * O2,double x,double y,double nSlop){
+		v_bias=0.2;
+		setSlop(nSlop);
+
+		Vec2 RotCenter(x,y);
+		P[0].SetPos(RotCenter-O1->GetPosition());
+		P[0].setPhysicsObject(O1);
+		O1->AttachPoint(&P[0]);
+		P[1].SetPos(RotCenter-O2->GetPosition());
 		P[1].setPhysicsObject(O2);
 		O2->AttachPoint(&P[1]);
 	}
@@ -87,6 +100,13 @@ namespace Dormir{
 		if(P[1].getPhysicsObject()!=NULL){
 			P[1].getPhysicsObject()->DetachPoint(&P[1]);
 		}
+	}
+
+	void Joint::setSlop(double nSlop){
+		if(nSlop<0)
+			slop=0;
+		else
+			slop=nSlop;
 	}
 
 }
