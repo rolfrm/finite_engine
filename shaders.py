@@ -21,7 +21,7 @@ varying vec2 vMultiLightDir[MAX_LIGHTS];
 
 void main(){
 vColor = color;
-vuv = uv;//vec2(0.5,0.5);
+vuv = uv;
  vec2 npos = vec2(pos.x*cos(Rotation) - pos.y*sin(Rotation), pos.y*cos(Rotation)+ pos.x*sin(Rotation))+vec2(Xoff,Yoff);
  lightDir = npos-lightpos;
  lightDir = npos-MultiLightPos[0];
@@ -65,7 +65,7 @@ void main(){
 		 ncol += col*(min(1.0,namb) + ndiff*0.5)*MultiLightColor[i]*MultiLightIntensity[i]; 
 	}
 	ncol += col*globalColor;
-	if(tex0Active != 0){
+	if(tex0Active == 1){
 		gl_FragColor= vec4(ncol,tex.a);
 	}else{
 		gl_FragColor= vec4(ncol,1);

@@ -10,6 +10,7 @@ class Core:
 		self.s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 		gfw.SetActiveShader(self.s1);
 		gfw.Zoom(500,250)
+		gfw.SetBGColor(0.5,0.6,0.7)
 		self.PhysicsCore = physics.Core(100)
 		self.PhysicsCore.setGravity(0.0,-0.4)
 		self.GameObjects = []
@@ -24,6 +25,7 @@ class Core:
 	def doMainLoop(self):
 		i = 0
 		self.Running = True
+		camera = [0,0]
 		while self.Running == True:
 			if not self.Level is 0:
 				self.Level.Update(0.01)
@@ -33,10 +35,10 @@ class Core:
 				for item in self.GameObjects:
 					if isinstance(item,Player):
 							self.s1.SetUniform2f(item.x,item.y,"CameraPosition")	
-							#print item.x,item.y
-							#item.Body.setInertia(0)
+							camera[0] = item.x
+							camera[1] = item.y
 					if item.Visual is not 0:
-						item.Draw()
+						item.Draw(camera)
 					if item.Body is not 0:
 						item.UpdatePos()
 					item.Update(0.1)
@@ -59,7 +61,6 @@ class Core:
 				for item in kev:
 					#print item.key
 					if item.key == 257:
-						print "ESCAPE!"
 						self.Running = False
 					for j in self.KeyEventHandlers:
 						j.KeyEventHandler(j,item.key,item.action)
@@ -102,11 +103,14 @@ class Core:
 			self.KeyEventHandlers.remove(gameObject)
 		except ValueError:
 			pass
+	def UnloadAll(self):
+		for i in self.GameObjects[:]:
+			self.UnloadObject(i)
 	def PlaySound(self,node):
 		self.nodeplayer.PlayNode(node,1)
 	def LoadLevel(self,LevelList):
 		for i in self.GameObjects[:]:
 			self.UnloadObject(i)
 		for i in LevelList:
+			
 			self.LoadObject(i)
-		print len(self.GameObjects)

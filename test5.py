@@ -1,57 +1,68 @@
 import core
-import gfw
-import numpy
-import physics
 import random
-import time
 from utils import *
-random.seed(time.time())
+
 def SpeedRun(length):
 	lv = []
 	nextpos = 0
 	lasty = 0
 	color = [random.random(),random.random(),random.random()]
-	color = [1,1,1]	
-	print color
-	
-	#font = LoadImageAsTexture("font1.png")
-	#Text = gfw.Text(font,0,1,0,1,4,4,0)
-	#print font
+	color = [0.5,0.8,0.4]
 	for i in range(0,length):
-		ground = MakeCompleteObject([-100,0, 100,0, 100,-100,-100,-100],color[:],[0,-1, 1,-1, 1,0, 0,0])
-		#ground.Visual.AddTexture(font,0)
+		ground = MakeCompleteObject([-100-i,0, 100+i,0, 100+i,-100,-100-i,-100],color[:],[0,-1, 1,-1, 1,0, 0,0])
 		ground.SetPos(nextpos,lasty)
-		#ground.tex = font
 		lv.append(ground)
 		nextpos = nextpos + 200+i*i
-		lasty = lasty + (random.random()-0.5)*200
-		#color[0] = color[0]*0.5 + random.random()*0.5
-		#color[1] = color[1]*0.5 + random.random()*0.5
-		#color[2] = color[2]*0.5 + random.random()*0.5
-		#print color
-	return core.Level([],lv,[])
+		lasty = lasty + (random.random()-0.5)*100
+		color[0] = color[0]*0.5 + random.random()*0.5
+		color[1] = color[1]*0.5 + random.random()*0.5
+		color[2] = color[2]*0.5 + random.random()*0.5
+	return lv
+
+class SpeedRunLevel(core.LevelBase):
 	
-print "Welcome to extreme speed run:"
-#time.sleep(1)
-print "Speed up on the Right arrow"
-#time.sleep(1)
-print "jump on up!"
-#time.sleep(1)
-print "AAAANNNDD !"
-#time.sleep(1)
-print "GO!"
+	def __init__(self):
+		import Image
+		self.player = core.Player()
+		
+		fontImage = Image.open('graphics_framework/font3.png')
+		tex = gfw.Texture(fontImage.tostring(),fontImage.size[0],fontImage.size[1],4,1)
+		Text = gfw.Text(tex,0,1,0,1,10,10,32)
+
+		Text.SetText("SCORE!")
+		self.textrendering = core.GameObject(Text)
+		self.textrendering.SetPos(-10,10)
+		self.textrendering.IgnoresCamera = True
+		
+	def LoadLevel(self,gamecore):
+		self.GameObjects = SpeedRun(5)
+		self.player.SetPos(0,100)
+		self.player.Body.setMass(1)
+		gamecore.LoadLevel(self.GameObjects)
+		gamecore.LoadObject(self.player)
+		gamecore.LoadObject(self.textrendering)
+		gamecore.Level = self	
+		self.GC = gamecore
+	def Unload(self):
+		self.GC.UnloadAll()
+		for i in self.GameObjects:
+			i.Delete()
+			self.GC.Level = 0
+	def Update(self,dt):
+		if self.player.y < -1000:
+			self.Unload()
+			self.LoadLevel(self.GC)
 
 gameCore = core.Core()
-player = core.Player()
-player.SetPos(0,50)
-player.Body.setMass(1)
-MainScreen = SpeedRun(100)
-MainScreen.Load(gameCore,player)
 
-for i in gameCore.GameObjects:
-	i.UpdatePos()
 
+level = SpeedRunLevel()
+level.LoadLevel(gameCore)
+level = 0
 gameCore.doMainLoop()
-
+gameCore = 0
+#from guppy import hpy
+#h = hpy()
+#print h.heap()
 
 
