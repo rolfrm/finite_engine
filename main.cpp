@@ -38,7 +38,7 @@ int main(int argc,char ** argv){
 	gCore.LoadSprite(&S);
 
 	Dormir::PhysicsObject O2(1);
-	O2.LoadPolygon(Dormir::GenerateBox(700,550,100,100));
+	O2.LoadPolygon(Dormir::GenerateBox(850,550,100,100));
 
 	pCore.LoadObject(&O2);
 
@@ -61,9 +61,11 @@ int main(int argc,char ** argv){
 	gCore.LoadSprite(&S3);
 	*/
 
-	Dormir::Joint J(&O,&O2,800,600);
+	Dormir::Joint J(&O,&O2,800,600,0);
+
 
 	pCore.LoadJoint(&J);
+
 
 	//Dormir::Joint J2(&O2,&O3,1150,650);
 	//pCore.LoadJoint(&J2);
@@ -73,10 +75,10 @@ int main(int argc,char ** argv){
 		double start=glfwGetTime();
 		glClear(GL_COLOR_BUFFER_BIT);
 		if(glfwGetKey(GLFW_KEY_F1)){
-			pCore.UnloadJoint(&J);
+			pCore.setGravity(0,-0.4);
 		}
 		if(glfwGetKey(GLFW_KEY_F2)){
-			pCore.LoadJoint(&J);
+			pCore.setGravity(0.4,0);
 		}
 		pCore.Run();
 		gCore.Run();
