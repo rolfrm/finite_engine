@@ -149,11 +149,13 @@ void Draw2(float x,float y, float rotation, Drawable* drw){
 }
 
 
+int allocedTexturePtrs = 0;
 Texture::Texture(char* data, int width, int height, int colorChannels, int inputSize){
 	gltex = -1;
 	UpdateTexture(data,  width,  height,  colorChannels,  inputSize);
-	ref = new int[0];
+	ref = new int;
 	*ref = 1;
+	allocedTexturePtrs++;
 	}
 Texture::Texture(const Texture& copy){
 	gltex = copy.gltex;
@@ -161,20 +163,36 @@ Texture::Texture(const Texture& copy){
 	*ref +=1;
 }
 Texture::Texture(){
+	//std::cout << "Texture constructed " << allocedTexturePtrs << "\n";
 	gltex = -1;
-	ref = new int[0];
+	ref = new int;
 	*ref = 1;
+	allocedTexturePtrs++;
 	}
 	
 Texture & Texture::operator=(const Texture & other){
+	*ref -=1;
+	if(*ref <= 0){
+		allocedTexturePtrs--;
+		delete ref;
+		if(gltex != -1){
+			glDeleteTextures(1,&gltex);
+		}
+	}
+
 	gltex = other.gltex;
 	ref = other.ref;
 	*ref +=1;
 	return *this;
 }
+
+
 Texture::~Texture(){
+	//std::cout << "Texture destructed"  << *ref << "\n";
 	*ref -=1;
 	if(*ref <= 0){
+		allocedTexturePtrs--;
+		//std::cout << allocedTexturePtrs << "\n";
 		delete ref;
 		if(gltex != -1){
 			glDeleteTextures(1,&gltex);
@@ -274,6 +292,10 @@ Drawable::Drawable(){
 		boundTextures[i] = Texture();
 		}
 	}
+Drawable::~Drawable(){
+	
+}
+
 void Drawable::Draw(float x, float y, float rotation){
 	
 	}
@@ -344,59 +366,33 @@ unsigned int GenVBO(void * data, unsigned int lenBytes, unsigned int type, unsig
 	return output;
 	
 }
+int CreatedPolygons = 0;
+
 Polygon::Polygon(){
-	ref = new unsigned int[1];
+	
+	ref = new unsigned int;
 	*ref = 1;
+	CreatedPolygons++;
 }
 Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType,unsigned int uvType){
-	drawType = GL_QUADS;
-	LoadVerts(vertexes,vertType);
-	this->indices = indices;
-	indiceVbo = GenVBO(&(this->indices[0]),indices.size()*sizeof(int),0,GL_ELEMENT_ARRAY_BUFFER_ARB);
-	
-	if(colors.size() > 0){
-			usingColor = true;
-			colorVbo = GenVBO(&colors[0],colors.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
-	}
-	usingUV = false;
-	if(uvs.size() > 0){
-		LoadUV(uvs,uvType);
-	}
-	
-	
-	ref = new unsigned int[1];
-	*ref = 1;
+//std::cout << "Polygon constructed" << CreatedPolygons << "\n";
+	Init(vertexes,indices,colors,uvs,vertType,uvType);
+	vertexes.clear();
+	indices.clear();
+	colors.clear();
+	uvs.clear();
 	}
 
 Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int vertType,unsigned int uvType){
-	drawType = GL_QUADS;
-	LoadVerts(std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv),vertType);
-	this->indices = std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li);
-	indiceVbo = GenVBO(&indices[0],indices.size()*sizeof(int),0,GL_ELEMENT_ARRAY_BUFFER_ARB);
-	if(lc > 0){
-		std::vector<float> colors = std::vector<float>((float*)rawdata_color,((float*)rawdata_color)+lc);
-		colorVbo = GenVBO(&colors[0],colors.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
-		usingColor = true;
-	}else{
-		usingColor = false;
+	Init(std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv),std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li),std::vector<float>((float*)rawdata_color,((float*)rawdata_color)+lc),std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv),vertType,uvType);
 	
-	}
-	usingUV = false;
-	if(luv > 0){
-		std::vector<float> nuvs = std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv);
-		LoadUV(nuvs,uvType);
-	}
-	
-	
-	
-	ref = new unsigned int[1];
-	*ref = 1;
 	}
 Polygon::~Polygon(){
+	//std::cout << "Polygon destructed\n";
 	*ref -=1;
 	if(*ref == 0){
 		delete ref;
-		
+		CreatedPolygons--;
 		Unload();
 	}
 }
@@ -419,6 +415,12 @@ Polygon::Polygon(const Polygon& other){
 }
 
 Polygon & Polygon::operator=(const Polygon& other){
+	*ref -=1;
+	if(*ref == 0){
+		delete ref;
+		CreatedPolygons--;
+		Unload();
+	}
 	ref = other.ref;
 	*ref += 1;
 	usingColor = other.usingColor;
@@ -437,6 +439,25 @@ Polygon & Polygon::operator=(const Polygon& other){
 	}
 	drawType = other.drawType;
 	return *this;
+}
+
+void Polygon::Init(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType ,unsigned int uvType ){
+	drawType = GL_QUADS;
+	LoadVerts(vertexes,vertType);
+	this->indices = indices;
+	indiceVbo = GenVBO(&(this->indices[0]),indices.size()*sizeof(int),0,GL_ELEMENT_ARRAY_BUFFER_ARB);
+	usingColor = false;
+	if(colors.size() > 0){
+			usingColor = true;
+			colorVbo = GenVBO(&colors[0],colors.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
+	}
+	usingUV = false;
+	if(uvs.size() > 0){
+		LoadUV(uvs,uvType);
+	}
+	ref = new unsigned int;
+	*ref = 1;
+	CreatedPolygons++;
 }
 void Polygon::LoadUV(std::vector<float> uvVector, int drawType){
 	usingUV = true;
@@ -602,6 +623,7 @@ void LightSystem::Activate(){
 	
 	delete []xydata;
 	delete []rgbdata;
+	delete []idata;
 	
 	}
 Light * LightSystem::GetLight(int channel){

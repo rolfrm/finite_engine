@@ -19,6 +19,7 @@ class Texture{
 class Drawable{
 	public:
 	Drawable();
+	virtual ~Drawable();
 	void ActivateTextures();
 	virtual void Draw(float x, float y, float a);
 	void AddTexture(Texture tex,int textureChannel);
@@ -48,6 +49,8 @@ class Polygon:public Drawable{
 	Polygon(const Polygon& other);
 	Polygon & operator=(const Polygon& other);
 	
+	
+	
 	void Draw(float x, float y, float rotation);
 	void SetDrawType(unsigned int);
 	void LoadUV(std::vector<float> uvVector, int drawType);
@@ -67,6 +70,7 @@ class Polygon:public Drawable{
 	unsigned int uvLoadedSize;
 	unsigned int uvLoadedType;
 	private:
+	void Init(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType,unsigned int uvType);
 	unsigned int drawType;
 	unsigned int * ref;
 	

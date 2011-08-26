@@ -13,11 +13,7 @@ def LoadImageAsTexture(path):
 	return tex
 
 def MakePolygon(verts, indices,colors,uvs):
-	nvertexes = numpy.array(verts,dtype=numpy.float32)
-	nindices = numpy.array(indices,dtype=numpy.uint32)
-	ncolor = numpy.array(colors,dtype=numpy.float32)
-	nuv = numpy.array(uvs,dtype=numpy.float32)
-	return gfw.Polygon(nvertexes.tostring(),len(nvertexes), nindices.tostring(),len(nindices),ncolor.tostring(),len(ncolor),nuv.tostring(),len(nuv))
+	return gfw.Polygon( gfw.FloatVector(verts), gfw.UIntVector(indices), gfw.FloatVector(colors), gfw.FloatVector(uvs))
 
 def makeGfxBox(sizex,sizey,color = [0,0,0]):
 	sx = sizex/2

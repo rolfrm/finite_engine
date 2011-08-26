@@ -10,7 +10,7 @@ class Core:
 		self.s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 		gfw.SetActiveShader(self.s1);
 		gfw.Zoom(500,250)
-		gfw.SetBGColor(0.5,0.6,0.7)
+		gfw.SetBGColor(0,0,0)
 		self.PhysicsCore = physics.Core(100)
 		self.PhysicsCore.setGravity(0.0,-0.4)
 		self.GameObjects = []
@@ -22,23 +22,23 @@ class Core:
 		self.nodeplayer = snd.NodePlayer(10)
 		self.nodeplayer.Connect(self.PA,0,0)
 		self.Level = 0
+		self.Camera = [0,0]
+	def SetCamera(self, x,y):
+		self.Camera[0] = x
+		self.Camera[1] = y
 	def doMainLoop(self):
 		i = 0
 		self.Running = True
-		camera = [0,0]
+		
 		while self.Running == True:
 			if not self.Level is 0:
 				self.Level.Update(0.01)
 			i += 1
 			try:
-					
+				self.s1.SetUniform2f(self.Camera[0],self.Camera[1],"CameraPosition")
 				for item in self.GameObjects:
-					if isinstance(item,Player):
-							self.s1.SetUniform2f(item.x,item.y,"CameraPosition")	
-							camera[0] = item.x
-							camera[1] = item.y
 					if item.Visual is not 0:
-						item.Draw(camera)
+						item.Draw(self.Camera)
 					if item.Body is not 0:
 						item.UpdatePos()
 					item.Update(0.1)
@@ -106,11 +106,12 @@ class Core:
 	def UnloadAll(self):
 		for i in self.GameObjects[:]:
 			self.UnloadObject(i)
+			
 	def PlaySound(self,node):
 		self.nodeplayer.PlayNode(node,1)
+		
 	def LoadLevel(self,LevelList):
-		for i in self.GameObjects[:]:
-			self.UnloadObject(i)
+		self.UnloadAll()
 		for i in LevelList:
 			
 			self.LoadObject(i)
