@@ -80,6 +80,7 @@ void main(){
 	//}
 }
 """
+#madness
 
 s1 = gfw.Shader(vs,fs)
 gfw.SetActiveShader(s1);

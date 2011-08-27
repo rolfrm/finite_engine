@@ -127,6 +127,7 @@ namespace Dormir{
 				dv-=O2->GetVelocity();
 				dv-=Vec2(-O2->GetAnglespeed()*r2.y,O2->GetAnglespeed()*r2.x);
 				Vec2 dP=O->GetPosition()+Joints[i]->P[0].getPos()-O2->GetPosition()-Joints[i]->P[1].getPos();
+				dP*=1-Joints[i]->slop/dP.GetNorm2();
 				dP*=-Joints[i]->v_bias;
 				dv-=dP;
 				P.y=(-dv.y+dv.x*k2/k1)/(k3-k2*k2/k1);
