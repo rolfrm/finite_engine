@@ -78,7 +78,7 @@ class Polygon:public Drawable{
 
 class Text:public Drawable{
 	public:
-	Text(Texture FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart);
+	Text(Texture FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart,float fontsize);
 	void SetText(std::string text);
 	void Draw(float x, float y, float rotation);
 	private:
@@ -90,7 +90,7 @@ class Text:public Drawable{
 	int lines;
 	int charsPerLine;
 	int textStart;
-	float spacing;
+	float FontSize;
 	Polygon Quad;
 };
 

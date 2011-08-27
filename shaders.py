@@ -6,6 +6,7 @@ attribute vec2 uv;
 uniform float Xoff;
 uniform float Yoff;
 uniform float Rotation;
+uniform int tex0Active;
 uniform vec3 Color;
 uniform vec2 lightpos;
 #define MAX_LIGHTS 5
@@ -21,6 +22,7 @@ varying vec2 vMultiLightDir[MAX_LIGHTS];
 
 void main(){
 vColor = color;
+vColor.x += tex0Active;
 vuv = uv;
  vec2 npos = vec2(pos.x*cos(Rotation) - pos.y*sin(Rotation), pos.y*cos(Rotation)+ pos.x*sin(Rotation))+vec2(Xoff,Yoff);
  lightDir = npos-lightpos;
@@ -66,7 +68,7 @@ void main(){
 	}
 	ncol += col*globalColor;
 	if(tex0Active == 1){
-		gl_FragColor= vec4(ncol,tex.a);
+		gl_FragColor= vec4(tex.rgb,tex.a);
 	}else{
 		gl_FragColor= vec4(ncol,1);
 

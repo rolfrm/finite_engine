@@ -148,32 +148,28 @@ void Draw2(float x,float y, float rotation, Drawable* drw){
 	Draw(x,y,rotation,drw);
 }
 
-
-int allocedTexturePtrs = 0;
 Texture::Texture(char* data, int width, int height, int colorChannels, int inputSize){
 	gltex = -1;
 	UpdateTexture(data,  width,  height,  colorChannels,  inputSize);
 	ref = new int;
 	*ref = 1;
-	allocedTexturePtrs++;
-	}
+}
+
 Texture::Texture(const Texture& copy){
 	gltex = copy.gltex;
 	ref = copy.ref;
 	*ref +=1;
 }
+
 Texture::Texture(){
-	//std::cout << "Texture constructed " << allocedTexturePtrs << "\n";
 	gltex = -1;
 	ref = new int;
 	*ref = 1;
-	allocedTexturePtrs++;
-	}
+}
 	
 Texture & Texture::operator=(const Texture & other){
 	*ref -=1;
 	if(*ref <= 0){
-		allocedTexturePtrs--;
 		delete ref;
 		if(gltex != -1){
 			glDeleteTextures(1,&gltex);
@@ -188,11 +184,8 @@ Texture & Texture::operator=(const Texture & other){
 
 
 Texture::~Texture(){
-	//std::cout << "Texture destructed"  << *ref << "\n";
 	*ref -=1;
 	if(*ref <= 0){
-		allocedTexturePtrs--;
-		//std::cout << allocedTexturePtrs << "\n";
 		delete ref;
 		if(gltex != -1){
 			glDeleteTextures(1,&gltex);
@@ -284,46 +277,43 @@ void Shader::SetUniform1fv(float * data, unsigned int count, const char * unifor
 
 unsigned int Shader::GetUniformLocation(const char * uniformname){
 	return glGetUniformLocation(ShaderProgram,uniformname);
-	}
+}
 
 
 Drawable::Drawable(){
 	for(int i= 0; i < MAXTEXTURES;i++){
 		boundTextures[i] = Texture();
-		}
 	}
+}
 Drawable::~Drawable(){
 	
 }
 
 void Drawable::Draw(float x, float y, float rotation){
 	
-	}
+}
 void Drawable::AddTexture(Texture tex,int textureChannel){
 	if(textureChannel >= 0 && textureChannel < MAXTEXTURES){
-		boundTextures[textureChannel] = tex;
-		
+		boundTextures[textureChannel] = tex;		
 	}
 }
 
 void Drawable::ActivateTextures(){
 	for(int i = 0; i < MAXTEXTURES;i++){
-			glActiveTexture(GL_TEXTURE0 + i);
-			if(boundTextures[i].gltex != (unsigned int) -1 ){
-				glBindTexture(GL_TEXTURE_2D, boundTextures[i].gltex);
-				char buf[5];
-				sprintf(buf,"tex%i\0",i);
-				ActiveShader.SetUniform1i(i,buf);
-				char buf2[11];
-				sprintf(buf2,"tex%iActive\0",i);
-				ActiveShader.SetUniform1i(1,buf2);
-
-
-			}else{
-				char buf[11];
-				sprintf(buf,"tex%iActive",i);
-				ActiveShader.SetUniform1i(0,buf);
-			}
+		glActiveTexture(GL_TEXTURE0 + i);
+		if(boundTextures[i].gltex != (unsigned int) -1 ){
+			glBindTexture(GL_TEXTURE_2D, boundTextures[i].gltex);
+			char buf[5];
+			sprintf(buf,"tex%i",i);
+			ActiveShader.SetUniform1i(i,buf);
+			char buf2[11];
+			sprintf(buf2,"tex%iActive",i);
+			ActiveShader.SetUniform1i(1,buf2);
+		}else{
+			char buf[11];
+			sprintf(buf,"tex%iActive",i);
+			ActiveShader.SetUniform1i(0,buf);
+		}
 	}
 }
 
@@ -527,7 +517,7 @@ void Polygon::Draw(float x, float y, float rotation){
 void Polygon::SetDrawType(unsigned int i){
 	drawType = i;
 }
-Text::Text(Texture FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart){
+Text::Text(Texture FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart,float fontSize){
 	this->fromx = fromx;
 	this->tox = tox;
 	this->fromy = fromy;
@@ -535,7 +525,8 @@ Text::Text(Texture FontTex,float fromx, float tox, float fromy, float toy, int l
 	this->lines = lines;
 	this->charsPerLine = charsPerLine;
 	this->textStart = textStart;
-	float verts[] = {0,0,0,1,1,1,1,0};
+	FontSize = fontSize;
+	float verts[] = {0,0,0,fontSize,fontSize,fontSize,fontSize,0};
 	unsigned int indices[] = {0,1,2,3};
 	float uvs[] = {0,1,0,0,1,0,1,1};
 	Quad = Polygon(std::vector<float>(verts,verts + 8), std::vector<unsigned int>(indices, indices + 4),std::vector<float>(),std::vector<float>(uvs, uvs+8),0,2);
@@ -549,7 +540,7 @@ void Text::Draw(float x, float y, float rotation){
 	float charSizeX = (tox - fromx)/charsPerLine;
 	float charSizeY = (toy - fromy)/lines;
 	Vec savedZoomLv = currentZoomLevel;
-	Zoom(20,20);
+	//Zoom(20,20);
 	int newlines = 0;
 	int column = 0;
 	for(int i = 0; i < text.length(); i++){
@@ -568,16 +559,16 @@ void Text::Draw(float x, float y, float rotation){
 		int line = index/charsPerLine;
 		int col = index - line*charsPerLine;
 		
-		float x1 = col*charSizeX;
+		float x1 = col*charSizeX-0.005;
 		float x2 = x1 + charSizeX; 
-		float y1 = line*charSizeY;
-		float y2 = y1 + charSizeY;
+		float y1 = line*charSizeY+0.005;
+		float y2 = y1 + charSizeY-0.007;;
 		float newuvs[] ={x1,y2,x1,y1,x2,y1,x2,y2};
 		Quad.ReloadUV(std::vector<float>(newuvs,newuvs+8));
-		Draw2(x + column*0.8,y-newlines,0,&Quad);
+		Draw2(x + column*0.9*FontSize,y-newlines*FontSize,0,&Quad);
 		column +=1;
 	}
-	Zoom(savedZoomLv.X,savedZoomLv.Y);
+	//Zoom(savedZoomLv.X,savedZoomLv.Y);
 }
 
 

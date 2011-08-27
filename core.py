@@ -6,10 +6,10 @@ import shaders
 from game_object import *
 class Core:
 	def __init__(self):
-		gfw.Init(1000,400,False,2)
+		gfw.Init(800,800,False,2)
 		self.s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 		gfw.SetActiveShader(self.s1);
-		gfw.Zoom(500,250)
+		gfw.Zoom(400,400)
 		gfw.SetBGColor(0,0,0)
 		self.PhysicsCore = physics.Core(100)
 		self.PhysicsCore.setGravity(0.0,-0.4)
@@ -23,6 +23,13 @@ class Core:
 		self.nodeplayer.Connect(self.PA,0,0)
 		self.Level = 0
 		self.Camera = [0,0]
+	def ZSort(self):
+		def sorter(x,y):
+			if x.z < y.z:
+				return 1
+			elif x.z >= y.z:
+				return -1
+		self.GameObjects.sort(cmp=sorter)
 	def SetCamera(self, x,y):
 		self.Camera[0] = x
 		self.Camera[1] = y
