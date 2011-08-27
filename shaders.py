@@ -22,7 +22,6 @@ varying vec2 vMultiLightDir[MAX_LIGHTS];
 
 void main(){
 vColor = color;
-vColor.x += tex0Active;
 vuv = uv;
  vec2 npos = vec2(pos.x*cos(Rotation) - pos.y*sin(Rotation), pos.y*cos(Rotation)+ pos.x*sin(Rotation))+vec2(Xoff,Yoff);
  lightDir = npos-lightpos;
