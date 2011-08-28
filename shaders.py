@@ -35,7 +35,8 @@ vuv = uv;
  normal.x *=-1.0;
  normal.y *=-1.0;
  normal = vec2(normal.x*cos(Rotation) - normal.y*sin(Rotation), normal.y*cos(Rotation)+ normal.x*sin(Rotation));
- gl_Position=vec4((npos - CameraPosition)/Zoom,0.0,1.0);
+ //gl_Position=vec4((npos - CameraPosition)/Zoom,0.0,1.0);
+ gl_Position=vec4((npos)/Zoom,0.0,1.0);
  }
 """, """
 uniform sampler2D tex0;

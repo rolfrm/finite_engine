@@ -48,8 +48,8 @@ def diamondStep(curmap,scaling):
 				nval += curmap[x][y+1]
 				n +=1
 			nval /=n
-			nval += random.random()*scaling			
-			#	nval += random.gauss(0,1)*scaling
+			#nval += random.random()*scaling			
+			nval += random.gauss(0,1)*scaling
 			curmap[x,y] = nval
 	return curmap
 	
@@ -68,8 +68,8 @@ def squareStep(curmap,scaling):
 			x = i*2 +1
 			y = j*2 +1
 			nval = (newmap[x-1][y-1] + newmap[x+1][y-1] + newmap[x-1][y+1] + newmap[x+1][y+1])/4
-			nval += random.random()*scaling
-			#nval += random.gauss(0,1)*scaling
+			#nval += random.random()*scaling
+			nval += random.gauss(0,1)*scaling
 			newmap[x][y] = nval
 			
 	return newmap
@@ -77,7 +77,7 @@ def squareStep(curmap,scaling):
 def MakeMap():
 	Map = numpy.zeros((7,7))
 	#Map[2][2] = 5
-	for i in range(0,4):
+	for i in range(0,7):
 		scaling = 0.5**float(i)
 		Map = squareStep(Map,scaling)
 		Map = diamondStep(Map,scaling)
