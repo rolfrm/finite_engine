@@ -44,6 +44,13 @@ namespace Dormir{
 		}
 	};
 
+	class GhostNode{
+	public:
+		Dormir::PhysicsObject * obj;
+		Dormir::Polygon * Ghostpolygon;
+		double intersection;
+	};
+
 	class Core{
 	public:
 		Core(unsigned int nMaxNodes);
@@ -75,6 +82,8 @@ namespace Dormir{
 		double Clamp(double value,double lower,double upper);
 		CollisionNode GetNextCollision();
 		bool CollisionsReady();
+		GhostNode GetNextGhostNode();
+		bool GhostNodesReady();
 
 
 
@@ -101,7 +110,7 @@ namespace Dormir{
 		std::vector<Dormir::Joint *> Joints;
 		std::list<Polygon *> GhostPolygons;
 		CollisionNode * Nodes,* ImpulseNodes;
-		std::vector<Dormir::CollisionNode> GhostNodes;
+		std::list<Dormir::GhostNode> GhostNodes;
 
 		Vec2 Gravity;
 		unsigned int allocatedNodes,allocatedContactNodes,allocatedImpulseNodes,maxNodes,runs,currentCollisionNode;

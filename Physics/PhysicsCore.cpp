@@ -357,5 +357,14 @@ namespace Dormir{
 	bool Core::CollisionsReady(){
 		return allocatedImpulseNodes > 0;
 	}
+	GhostNode Core::GetNextGhostNode(){
+		GhostNode out = GhostNodes.front();
+		GhostNodes.pop_front();
+		return out;
+	}
+
+	bool Core::GhostNodesReady(){
+		return GhostNodes.size()>0;
+	}
 
 }

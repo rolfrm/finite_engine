@@ -20,11 +20,17 @@ namespace Dormir{
 				itf->FindBounds();
 			}
 		}
+		for(std::list<Dormir::Polygon *>::iterator it=core->GhostPolygons.begin();it!=core->GhostPolygons.end();it++){
+			(*it)->FindBounds();
+		}
 		for(std::list<Dormir::PhysicsObject *>::iterator it=core->Objects.begin();it!=core->Objects.end();it++){
 			std::list<Dormir::PhysicsObject *>::iterator it2=it;
 			for(it2++;it2!=core->Objects.end();it2++){
 				if((*it)->GetMass()!=0 || (*it2)->GetMass()!=0)
 					CollisionDetection(*it,*it2);
+			}
+			for(std::list<Dormir::Polygon *>::iterator itf=core->GhostPolygons.begin();itf!=core->GhostPolygons.end();itf++){
+				CollisionDetection(*it,*itf);
 			}
 		}
 	}
@@ -82,6 +88,14 @@ namespace Dormir{
 				if(PreCollisionDetection(&*it,&*it2)){
 					SAT(&*it,&*it2,obj1,obj2);
 				}
+			}
+		}
+	}
+
+	void SeperatingAxis::CollisionDetection(Dormir::PhysicsObject * obj,Dormir::Polygon * Ghost){
+		for(std::list<Dormir::Polygon>::iterator it=obj->Body.begin();it!=obj->Body.end();it++){
+			if(PreCollisionDetection(&*it,Ghost)){
+				SAT(Ghost,&*it,obj);
 			}
 		}
 	}
@@ -369,6 +383,88 @@ namespace Dormir{
 		Node.rf=Node.contact-Node.from->Pos;
 		Node.rt=Node.contact-Node.to->Pos;
 		core->AddCollisionNode(Node);
+	}
+
+	void SeperatingAxis::SAT(Dormir::Polygon * GP,Dormir::Polygon * P,Dormir::PhysicsObject * obj){
+		GhostNode Node;
+		Node.intersection=INFINITY;
+			/*
+			 * The Collision Detection algorithm is run twice,
+			 * Firstly with the given arguments
+			 * And secondly with the reverse arguments
+			 * Meaning that first the algorithm is run with the first objects axis
+			 * And after with the second objects axis
+			 */
+			/*arma::mat PM1=arma::trans(P1->Vertex)*P1->Axis,PM2=arma::trans(P2->Vertex)*P1->Axis;
+			for(unsigned int i=0;i<PM1.n_cols;i++){
+				double min2=arma::min(PM2.col(i)),max1=arma::max(PM1.col(i));
+				if(min2>=max1)
+					return;
+				else if(max1-min2<Node.intersection){
+					*
+					 * If the shortest intersection is found then basic data is read into a collision node
+					 * These are as following
+					 *
+					Node.intersection=max1-min2; //Proportion of intersectionev
+					Node.axis=P1->Axis.col(i); //Axis of the collision
+					Node.from=obj1; //Reference to the object from which the axis originates
+					Node.to=obj2; //Reference to the opposing object
+					cMax1=max1;
+					cMin2=min2;
+
+
+				}
+			}*/
+
+			for(unsigned int i=0;i<GP->Axis.size();i++){
+				double min2=GP->Axis[i]*P->Vertex[0],max1=GP->Axis[i]*GP->Vertex[0];
+				for(unsigned int j=1;j<GP->Vertex.size();j++){
+					double temp=GP->Axis[i]*GP->Vertex[j];
+					if(temp>max1){
+						max1=temp;
+					}
+				}
+				for(unsigned int j=1;j<P->Vertex.size();j++){
+					double temp=GP->Axis[i]*P->Vertex[j];
+					if(temp<min2){
+						min2=temp;
+					}
+				}
+				if(min2>=max1)
+					return;
+				else if(max1-min2<Node.intersection){
+					Node.intersection=max1-min2; //Proportion of intersectionev
+					Node.obj=obj;
+				}
+
+			}
+
+			for(unsigned int i=0;i<P->Axis.size();i++){
+				double min2=GP->Axis[i]*P->Vertex[0],max1=GP->Axis[i]*GP->Vertex[0];
+				for(unsigned int j=1;j<GP->Vertex.size();j++){
+					double temp=GP->Axis[i]*GP->Vertex[j];
+					if(temp>max1){
+						max1=temp;
+					}
+				}
+				for(unsigned int j=1;j<P->Vertex.size();j++){
+					double temp=GP->Axis[i]*P->Vertex[j];
+					if(temp<min2){
+						min2=temp;
+					}
+				}
+				if(min2>=max1)
+					return;
+				else if(max1-min2<Node.intersection){
+					Node.intersection=max1-min2; //Proportion of intersectionev
+					Node.obj=obj;
+				}
+
+			}
+
+			core->GhostNodes.push_back(Node);
+
+
 	}
 
 	bool SeperatingAxis::PreCollisionDetection(Dormir::Polygon * obj1,Dormir::Polygon * obj2){
