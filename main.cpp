@@ -15,13 +15,16 @@
 #include "Physics/Objects/PhysicsObject.h"
 #include "Physics/Objects/Constraint.hpp"
 
+
+#include <map>
+
 Dormir::Core pCore(400);
 Dormir::GraphicsCore gCore(1440,900);
 
 
 
 int main(int argc,char ** argv){
-	pCore.setGravity(0,-0.4);
+/*	pCore.setGravity(0,-0.4);
 
 	gCore.GenerateTexture("Sprites/stagePart1.png");
 	gCore.GenerateTexture("Sprites/stagePart4.png");
@@ -48,18 +51,17 @@ int main(int argc,char ** argv){
 
 	gCore.LoadSprite(&S2);
 
-/*
-	Dormir::PhysicsObject O3(1);
-	O3.LoadPolygon(Dormir::GenerateBox(1200,650,100,100));
 
-	pCore.LoadObject(&O3);
+//	Dormir::PhysicsObject O3(1);
+//	O3.LoadPolygon(Dormir::GenerateBox(1200,650,100,100));
 
-	Dormir::Sprite S3(100,100);
-	S3.SetTexture(gCore.GetTexture("Sprites/stagePart1.png"));
-	S3.setReference(&O3);
+//	pCore.LoadObject(&O3);
 
-	gCore.LoadSprite(&S3);
-	*/
+//	Dormir::Sprite S3(100,100);
+//	S3.SetTexture(gCore.GetTexture("Sprites/stagePart1.png"));
+//	S3.setReference(&O3);
+
+//	gCore.LoadSprite(&S3);
 
 	Dormir::Joint J(&O,&O2,800,600,0);
 
@@ -89,6 +91,13 @@ int main(int argc,char ** argv){
 			glfwSleep(0.01-(finish-start));
 		}
 	}
+*/
 
-
+	std::multimap<int,int> M;
+	M.insert(std::pair<int,int>(1,2));
+	M.insert(std::pair<int,int>(2,4));
+	M.insert(std::pair<int,int>(1,3));
+	std::multimap<int,int>::iterator it=M.find(1);
+	for(unsigned int i=0;i<M.count(1);i++,it++)
+		std::cout<<it->second<<" found\n";
 }
