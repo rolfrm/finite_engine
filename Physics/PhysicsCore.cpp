@@ -17,7 +17,6 @@ namespace Dormir{
 		maxNodes=nMaxNodes;
 		Nodes = new CollisionNode[nMaxNodes];
 		ImpulseNodes = new CollisionNode[nMaxNodes];
-		ContactNodes = new CollisionNode[nMaxNodes];
 		runs=0;
 
 		setGravity(0,0);
@@ -33,7 +32,8 @@ namespace Dormir{
 	}
 
 	void Core::Run(){
-		savedNodes.clear();
+		currentCollisionNode=0;
+		GhostNodes.clear();
 		for(std::list<Dormir::PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
 			(*it)->Advance();
 		}
@@ -152,7 +152,6 @@ namespace Dormir{
 		for(unsigned int i=0;i<allocatedNodes;i+=2){
 			Nodes[i].to->OnCollision(&Nodes[i]);
 			Nodes[i].from->OnCollision(&Nodes[i]);
-			savedNodes.push_back(Nodes[i]);
 		}
 
 
@@ -186,6 +185,16 @@ namespace Dormir{
 		return true;
 	}
 
+	bool Core::LoadGhostPolygon(Dormir::Polygon * P){
+		for(std::list<Polygon *>::iterator it=GhostPolygons.begin();it!=GhostPolygons.end();it++){
+			if(*it==P)
+				return false;
+		}
+		P->CalculateAxis();
+		GhostPolygons.push_back(P);
+		return true;
+	}
+
 
 	bool Core::UnloadObject(Dormir::PhysicsObject * obj){
 		for(std::list<Dormir::PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
@@ -202,6 +211,16 @@ namespace Dormir{
 		for(unsigned int i=0;i<Joints.size();i++){
 			if(Joints[i]==J){
 				Joints.erase(Joints.begin()+i);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool Core::UnloadGhostPolygon(Dormir::Polygon * P){
+		for(std::list<Polygon *>::iterator it=GhostPolygons.begin();it!=GhostPolygons.end();it++){
+			if(*it==P){
+				GhostPolygons.erase(it);
 				return true;
 			}
 		}
@@ -331,12 +350,12 @@ namespace Dormir{
 		return n*(temp2-temp3);
 	}
 	CollisionNode Core::GetNextCollision(){
-		CollisionNode out = savedNodes.front();
-		savedNodes.pop_front();
+		CollisionNode out = ImpulseNodes[currentCollisionNode];
+		currentCollisionNode+=2;
 		return out;
 	}
 	bool Core::CollisionsReady(){
-		return savedNodes.size() > 0;
+		return allocatedImpulseNodes > 0;
 	}
 
 }
