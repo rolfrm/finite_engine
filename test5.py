@@ -2,7 +2,7 @@ import core
 import random
 from utils import *
 fontImage = Image.open('graphics_framework/font3.png')
-
+doorTex = Image.open('door.png')
 class ActivateAble(core.GameObject):
 	def __init__(self,visual,body,st = "ActivateAble"):
 		self.ID = st
@@ -90,7 +90,7 @@ class Player(core.GameObject):
 		self.Body.setInertia(0)
 		self.AllowJump = False
 		gos = self.gameCore.GameObjects
-		dist = 100
+		dist = 50
 		obj = None
 		s = ""
 		for i in gos:
@@ -130,7 +130,11 @@ class PickUpable(ActivateAble):
 		self.CollisionResponse = (lambda x,other,y: self.Col(other))
 		self.usage = 0
 	def Use(self):
-		self.usage(self)
+		other.gameCore.UnloadObject(self)
+		other.Inventory.append(self)
+	def Activate(self,other):
+		other.gameCore.UnloadObject(self)
+		other.Inventory.append(self)
 	def SetUseFunction(self,func):
 		self.usage = func
 	def Col(self,other):
@@ -142,24 +146,22 @@ class SpeedRunLevel(core.LevelBase):
 		self.player = player
 		self.GC = gameCore
 		self.MainScreen = mainscreen
-		fontImage = Image.open('graphics_framework/font3.png')
-		tex = gfw.Texture(fontImage.tostring(),fontImage.size[0],fontImage.size[1],4,1)
-		Text = gfw.Text(tex,0,1,0,1,10,10,32,20)
+		fontImage = LoadImageAsTexture('graphics_framework/font3.png')
+		Text = gfw.Text(fontImage,0,1,0,1,10,10,32,20)
 		
 		self.textrendering = core.GameObject(Text)
 		self.textrendering.SetPos(-180,150)
 		self.textrendering.IgnoresCamera = True
 		
-		RunText = gfw.Text(tex,0,1,0,1,10,10,32,100)
+		RunText = gfw.Text(fontImage,0,1,0,1,10,10,32,100)
 		self.runtext = core.GameObject(RunText)
 		self.runtext.SetPos(0,100)
 		self.runtext.z = 1
 		RunText.SetText("RUN!")
-		
-		
-		
+		self.runtext.parralax = 0.5
 		
 	def LoadLevel(self):
+		gfw.SetBGColor(0.3,0.4,0.5)
 		self.GameObjects = SpeedRun(100)
 		self.player.SetPos(0,100)
 		self.player.Body.setMass(1)
@@ -187,39 +189,52 @@ class Portal(ActivateAble):
 	def Activate(self,other):
 		if isinstance(other,Player):
 			self.exitLevel.LoadLevel()
-	def __init__(self,exitLevel,gameCore):
+	def __init__(self,exitLevel,gameCore,to ="..."):
 		self.exitLevel = exitLevel
 		self.GC = gameCore
-		go = MakeCompleteObject([0,0,10,0,10,10,0,10],[1,1,0],[0,-1, 1,-1, 1,0, 0,0])
+		porttex = LoadImageAsTexture('door.png')
+		go = MakeCompleteObject([0,0,64,0,64,96,0,96],[0.1,0.1,0.2],[0,1, 1,1, 1,0, 0,0])
+
 		go.Body.setMass(0)
-		super(Portal,self).__init__(go.Visual,go.Body,"Portal, Walk through[ctrl]")
-		#self.CollisionResponse = lambda other,y,z: self.Activate(y)
+		super(Portal,self).__init__(go.Visual,0,"Door to " + to)
 
 class MainScreen:
 	def __init__(self,gameCore):
 		self.GC = gameCore
 		self.player = Player(self.GC)
-		self.Portal = Portal(SpeedRunLevel(self.GC,self.player,self),gameCore)
-		self.Portal.SetPos(50,50)
+		self.Portal = Portal(SpeedRunLevel(self.GC,self.player,self),gameCore, "The running grounds")
+		self.Portal.SetPos(-120,50)
+		self.Portal.parralax = 0.9
+		self.OutsideDoor = Portal(SpeedRunLevel(self.GC,self.player,self),gameCore, "outside.")
+		self.OutsideDoor.SetPos(-20,50)
+		self.OutsideDoor.parralax = 0.9
+		
 		self.player.Body.setMass(1)
-		self.floor = MakeCompleteObject([-200,0, 200,0, 200,-100,-200,-50],[1,1,1],[0,-1, 1,-1, 1,0, 0,0])
-		self.floor.SetPos(0,-100)
+		self.Portal.z = 3
+		self.floor = MakeCompleteObject([-200,0, 200,0, 200,-100,-200,-100],[0.2,0.2,0.4],[0,-1, 1,-1, 1,0, 0,0])
+		#self.floor.SetPos(0,-100)
+		self.floor.z = 4
 		self.item = PickUpable(MakeCompleteObject([0,0,10,0,10,10,0,10],[0.5,0.5,1],[0,-1, 1,-1, 1,0, 0,0]))
 		self.item.SetPos(0,60)
-		
-		
+		self.item.Body.setMass(1)
+		self.wall = core.GameObject(MakePolygon([-200,-100, -200,200, 200,200, 200,-100],[],[0.1,0.1,0.3],[]))
+		self.wall.z = 5
+		#self.wall.parralax = 0.5
+		self.window = core.GameObject(makeGfxBox(50,50,[1,1,1],LoadImageAsTexture("window.png")))
+		self.window.SetPos(80,80)
+		self.window.z = 4
+		self.window.parralax = 0.9
 		tex = gfw.Texture(fontImage.tostring(),fontImage.size[0],fontImage.size[1],4,1)
-		Text = gfw.Text(tex,0,1,0,1,10,10,32,100)
+		Text = gfw.Text(tex,0,1,0,1,10,10,32,20)
 		Text.SetText("HOME")
 		
 		self.textrendering = core.GameObject(Text)
 		self.textrendering.z = 1
-		self.textrendering.SetPos(-150,10)
+		self.textrendering.SetPos(-200,200)
 		
-		
-		self.ItemList = [self.player,self.floor,self.Portal,self.item,self.textrendering]
+		self.ItemList = [self.player,self.floor,self.Portal,self.item,self.textrendering,self.wall,self.window,self.OutsideDoor]
 	def LoadLevel(self):
-		
+		gfw.SetBGColor(0,0,0)
 		self.player.SetPos(100,100)
 		self.player.z =-1
 		self.GC.LoadLevel(self.ItemList)
@@ -230,7 +245,6 @@ gameCore = core.Core()
 
 level = MainScreen(gameCore)
 level.LoadLevel()
-level = 0
 gameCore.doMainLoop()
 gameCore.UnloadAll()
 

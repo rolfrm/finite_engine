@@ -540,7 +540,6 @@ void Text::Draw(float x, float y, float rotation){
 	float charSizeX = (tox - fromx)/charsPerLine;
 	float charSizeY = (toy - fromy)/lines;
 	Vec savedZoomLv = currentZoomLevel;
-	//Zoom(20,20);
 	int newlines = 0;
 	int column = 0;
 	for(int i = 0; i < text.length(); i++){
@@ -568,14 +567,14 @@ void Text::Draw(float x, float y, float rotation){
 		Draw2(x + column*0.9*FontSize,y-newlines*FontSize,0,&Quad);
 		column +=1;
 	}
-	//Zoom(savedZoomLv.X,savedZoomLv.Y);
 }
 
 
 Vec::Vec(){
 	X = 0;
 	Y = 0;
-	} 
+} 
+	
 Vec::Vec(float x,float y){
 	X = x;
 	Y = y;
