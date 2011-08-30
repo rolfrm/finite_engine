@@ -6,6 +6,7 @@ attribute vec2 uv;
 uniform float Xoff;
 uniform float Yoff;
 uniform float Rotation;
+uniform int tex0Active;
 uniform vec3 Color;
 uniform vec2 lightpos;
 #define MAX_LIGHTS 5
@@ -21,7 +22,7 @@ varying vec2 vMultiLightDir[MAX_LIGHTS];
 
 void main(){
 vColor = color;
-vuv = uv;//vec2(0.5,0.5);
+vuv = uv;
  vec2 npos = vec2(pos.x*cos(Rotation) - pos.y*sin(Rotation), pos.y*cos(Rotation)+ pos.x*sin(Rotation))+vec2(Xoff,Yoff);
  lightDir = npos-lightpos;
  lightDir = npos-MultiLightPos[0];
@@ -34,7 +35,8 @@ vuv = uv;//vec2(0.5,0.5);
  normal.x *=-1.0;
  normal.y *=-1.0;
  normal = vec2(normal.x*cos(Rotation) - normal.y*sin(Rotation), normal.y*cos(Rotation)+ normal.x*sin(Rotation));
- gl_Position=vec4((npos - CameraPosition)/Zoom,0.0,1.0);
+ //gl_Position=vec4((npos - CameraPosition)/Zoom,0.0,1.0);
+ gl_Position=vec4((npos)/Zoom,0.0,1.0);
  }
 """, """
 uniform sampler2D tex0;
@@ -65,8 +67,8 @@ void main(){
 		 ncol += col*(min(1.0,namb) + ndiff*0.5)*MultiLightColor[i]*MultiLightIntensity[i]; 
 	}
 	ncol += col*globalColor;
-	if(tex0Active != 0){
-		gl_FragColor= vec4(ncol,tex.a);
+	if(tex0Active == 1){
+		gl_FragColor= vec4(tex.rgb,tex.a);
 	}else{
 		gl_FragColor= vec4(ncol,1);
 

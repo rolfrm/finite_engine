@@ -136,42 +136,75 @@ void DeInit(){
 }
 
 void Draw(float x,float y, float rotation, Drawable* drw){
-	ActiveShader.SetUniform1f(x,"Xoff");
-	ActiveShader.SetUniform1f(y,"Yoff");
-	ActiveShader.SetUniform1f(rotation,"Rotation");
 	
-	drw->Draw();
+	drw->Draw(x,y,rotation);
+}
+
+void SetBGColor(float r, float g, float b){
+	glClearColor(r,g,b,1);
 }
 
 void Draw2(float x,float y, float rotation, Drawable* drw){
 	Draw(x,y,rotation,drw);
 }
 
-
 Texture::Texture(char* data, int width, int height, int colorChannels, int inputSize){
-	this->data = (float*)data;
-	this->width = width;
-	this->height = height;
-	this->InputSize = inputSize;
-	ColorChannels = colorChannels;
 	gltex = -1;
-	gltex = GetGLTexture();
-		
+	UpdateTexture(data,  width,  height,  colorChannels,  inputSize);
+	ref = new int;
+	*ref = 1;
+}
+
+Texture::Texture(const Texture& copy){
+	gltex = copy.gltex;
+	ref = copy.ref;
+	*ref +=1;
+}
+
+Texture::Texture(){
+	gltex = -1;
+	ref = new int;
+	*ref = 1;
+}
+	
+Texture & Texture::operator=(const Texture & other){
+	*ref -=1;
+	if(*ref <= 0){
+		delete ref;
+		if(gltex != -1){
+			glDeleteTextures(1,&gltex);
+		}
 	}
-unsigned int Texture::GetGLTexture(){
-	if(gltex == (unsigned int)-1){
+
+	gltex = other.gltex;
+	ref = other.ref;
+	*ref +=1;
+	return *this;
+}
+
+
+Texture::~Texture(){
+	*ref -=1;
+	if(*ref <= 0){
+		delete ref;
+		if(gltex != -1){
+			glDeleteTextures(1,&gltex);
+		}
+	}
+}
+void Texture::UpdateTexture(char * data, int width, int height, int colorChannels, int inputSize){
 		int glCol;
-		if(ColorChannels == 3){
+		if(colorChannels == 3){
 			glCol = GL_RGB;
-		}else if(ColorChannels == 4){
+		}else if(colorChannels == 4){
 			glCol = GL_RGBA;
 		}else{
 			glCol = GL_INTENSITY;
 		}
 		unsigned int intype;
-		if (InputSize == 1){
+		if (inputSize == 1){
 			intype = GL_UNSIGNED_BYTE;
-		}else if(InputSize == 4){
+		}else if(inputSize == 4){
 			intype = GL_FLOAT;
 		}
 		glGenTextures(1,&gltex);
@@ -181,10 +214,11 @@ unsigned int Texture::GetGLTexture(){
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 		
-		glTexImage2D(GL_TEXTURE_2D,0,ColorChannels,this->width,this->height,0,glCol,intype,data);
-	}
+		glTexImage2D(GL_TEXTURE_2D,0,colorChannels,width,height,0,glCol,intype,data);
+}
+
+unsigned int Texture::GetGLTexture(){
 	return gltex;
-	
 }
 
 
@@ -243,42 +277,43 @@ void Shader::SetUniform1fv(float * data, unsigned int count, const char * unifor
 
 unsigned int Shader::GetUniformLocation(const char * uniformname){
 	return glGetUniformLocation(ShaderProgram,uniformname);
-	}
+}
 
-#define MAXTEXTURES 2
+
 Drawable::Drawable(){
 	for(int i= 0; i < MAXTEXTURES;i++){
-		boundTextures[i] = NULL;
-		}
+		boundTextures[i] = Texture();
 	}
-void Drawable::Draw(){
+}
+Drawable::~Drawable(){
 	
-	}
-void Drawable::AddTexture(Texture * tex,int textureChannel){
-	if(textureChannel >= 0 && textureChannel < 2){
-		boundTextures[textureChannel] = tex;
-		
+}
+
+void Drawable::Draw(float x, float y, float rotation){
+	
+}
+void Drawable::AddTexture(Texture tex,int textureChannel){
+	if(textureChannel >= 0 && textureChannel < MAXTEXTURES){
+		boundTextures[textureChannel] = tex;		
 	}
 }
 
 void Drawable::ActivateTextures(){
-	for(int i = 0; i < 2;i++){
-			glActiveTexture(GL_TEXTURE0 + i);
-			if(boundTextures[i] != NULL){
-				glBindTexture(GL_TEXTURE_2D, boundTextures[i]->GetGLTexture());
-				char buf[5];
-				sprintf(buf,"tex%i\0",i);
-				ActiveShader.SetUniform1i(i,buf);
-				char buf2[11];
-				sprintf(buf2,"tex%iActive\0",i);
-				ActiveShader.SetUniform1i(1,buf2);
-
-
-			}else{
-				char buf[11];
-				sprintf(buf,"tex%iActive",i);
-				ActiveShader.SetUniform1i(0,buf);
-			}
+	for(int i = 0; i < MAXTEXTURES;i++){
+		glActiveTexture(GL_TEXTURE0 + i);
+		if(boundTextures[i].gltex != (unsigned int) -1 ){
+			glBindTexture(GL_TEXTURE_2D, boundTextures[i].gltex);
+			char buf[5];
+			sprintf(buf,"tex%i",i);
+			ActiveShader.SetUniform1i(i,buf);
+			char buf2[11];
+			sprintf(buf2,"tex%iActive",i);
+			ActiveShader.SetUniform1i(1,buf2);
+		}else{
+			char buf[11];
+			sprintf(buf,"tex%iActive",i);
+			ActiveShader.SetUniform1i(0,buf);
+		}
 	}
 }
 
@@ -303,9 +338,7 @@ void DrawableTest::Draw(){
 		glDrawArrays(GL_POINTS,0, 3);
 		glDisableVertexAttribArray(posAttribLoc);
 }
-Polygon::Polygon(){
-	
-}
+
 
 unsigned int GenVBO(void * data, unsigned int lenBytes, unsigned int type, unsigned int glBufferType){
 	if(type == 0){
@@ -323,72 +356,131 @@ unsigned int GenVBO(void * data, unsigned int lenBytes, unsigned int type, unsig
 	return output;
 	
 }
+int CreatedPolygons = 0;
 
-Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int uvType){
+Polygon::Polygon(){
+	
+	ref = new unsigned int;
+	*ref = 1;
+	CreatedPolygons++;
+}
+Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType,unsigned int uvType){
+//std::cout << "Polygon constructed" << CreatedPolygons << "\n";
+	Init(vertexes,indices,colors,uvs,vertType,uvType);
+	vertexes.clear();
+	indices.clear();
+	colors.clear();
+	uvs.clear();
+	}
+
+Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int vertType,unsigned int uvType){
+	Init(std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv),std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li),std::vector<float>((float*)rawdata_color,((float*)rawdata_color)+lc),std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv),vertType,uvType);
+	
+	}
+Polygon::~Polygon(){
+	//std::cout << "Polygon destructed\n";
+	*ref -=1;
+	if(*ref == 0){
+		delete ref;
+		CreatedPolygons--;
+		Unload();
+	}
+}
+
+Polygon::Polygon(const Polygon& other){
+	
+	ref = other.ref;
+	*ref += 1;
+	indices = other.indices;
+	usingColor = other.usingColor;
+	usingUV = other.usingUV;
+	vertVbo  = other.vertVbo;
+	indiceVbo  = other.indiceVbo;
+	colorVbo  = other.colorVbo;
+	
+	uvVbo  = other.uvVbo;
+	uvLoadedSize  = other.uvLoadedSize;
+	uvLoadedType  = other.uvLoadedType;
+	drawType = other.drawType;
+}
+
+Polygon & Polygon::operator=(const Polygon& other){
+	*ref -=1;
+	if(*ref == 0){
+		delete ref;
+		CreatedPolygons--;
+		Unload();
+	}
+	ref = other.ref;
+	*ref += 1;
+	usingColor = other.usingColor;
+	usingUV = other.usingUV;
+	vertVbo  = other.vertVbo;
+	indices = other.indices;
+	indiceVbo  = other.indiceVbo;
+	if(usingColor){
+		colorVbo  = other.colorVbo;
+	}
+	
+	if(usingUV){
+		uvVbo  = other.uvVbo;
+		uvLoadedSize  = other.uvLoadedSize;
+		uvLoadedType  = other.uvLoadedType;
+	}
+	drawType = other.drawType;
+	return *this;
+}
+
+void Polygon::Init(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType ,unsigned int uvType ){
 	drawType = GL_QUADS;
-	this->vertexes = vertexes;
+	LoadVerts(vertexes,vertType);
 	this->indices = indices;
+	indiceVbo = GenVBO(&(this->indices[0]),indices.size()*sizeof(int),0,GL_ELEMENT_ARRAY_BUFFER_ARB);
+	usingColor = false;
 	if(colors.size() > 0){
 			usingColor = true;
+			colorVbo = GenVBO(&colors[0],colors.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
 	}
-	this->colors = colors;
 	usingUV = false;
 	if(uvs.size() > 0){
-		LoadUV(uvs,0);
+		LoadUV(uvs,uvType);
 	}
-	
-	refreshVbos();
-	}
-
-Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int uvType){
-	drawType = GL_QUADS;
-	this->vertexes = std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv);
-	this->indices = std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li);
-	
-	if(lc > 0){
-	this->colors = std::vector<float>((float*)rawdata_color,((float*)rawdata_color)+lc);
-	
-	usingColor = true;
-	}else{
-		usingColor = false;
-	
-	}
-	usingUV = false;
-	if(luv > 0){
-		std::vector<float> nuvs = std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv);
-		LoadUV(nuvs,0);
-	}
-	
-	refreshVbos();
-	}
-	
+	ref = new unsigned int;
+	*ref = 1;
+	CreatedPolygons++;
+}
 void Polygon::LoadUV(std::vector<float> uvVector, int drawType){
 	usingUV = true;
-	uvLoadedSize = uvVector.size()*sizeof(float);
-	uvLoadedType = drawType;
-	
-	uvVbo = GenVBO(&(uvVector[0]),uvLoadedSize,uvLoadedType,GL_ARRAY_BUFFER_ARB);
+	uvVbo = GenVBO(&(uvVector[0]),uvVector.size()*sizeof(float),drawType,GL_ARRAY_BUFFER_ARB);
 }
 
 void Polygon::ReloadUV(std::vector<float> uvVector,unsigned int offset){
 	glBindBuffer(GL_ARRAY_BUFFER_ARB,uvVbo);
 	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, offset, uvVector.size()*sizeof(float), &(uvVector[0]));
 }
+void Polygon::LoadVerts(std::vector<float> vertVector, int drawType){
+	vertVbo = GenVBO(&(vertVector[0]),vertVector.size()*sizeof(float),drawType,GL_ARRAY_BUFFER_ARB);
+}
+void Polygon::ReloadVerts(std::vector<float> vertVector,unsigned int offset){
+	glBindBuffer(GL_ARRAY_BUFFER_ARB,vertVbo);
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, offset, vertVector.size()*sizeof(float), &(vertVector[0]));
+}
 
-
-void Polygon::refreshVbos(){
-	//Load in constructor instead..
-	vertVbo = GenVBO(&vertexes[0],vertexes.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
-	indiceVbo = GenVBO(&indices[0],indices.size()*sizeof(int),0,GL_ELEMENT_ARRAY_BUFFER_ARB);
-	
+void Polygon::Unload(){
+	glDeleteBuffers(1,&vertVbo);
+	glDeleteBuffers(1,&indiceVbo);
+	if(usingUV){
+		glDeleteBuffers(1,&uvVbo);
+	}
 	if(usingColor){
-		colorVbo = GenVBO(&colors[0],colors.size()*sizeof(float),0,GL_ARRAY_BUFFER_ARB);
+		glDeleteBuffers(1,&colorVbo);
 	}
-	
-	}
-	
-void Polygon::Draw(){
-	
+}
+
+void Polygon::Draw(float x, float y, float rotation){
+	ActiveShader.SetUniform1f(x,"Xoff");
+	ActiveShader.SetUniform1f(y,"Yoff");
+	ActiveShader.SetUniform1f(rotation,"Rotation");
 	int posAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"pos");
 	int colorAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"color");
 	int uvAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"uv");
@@ -402,7 +494,6 @@ void Polygon::Draw(){
 		glVertexAttribPointer(colorAttribLoc,3,GL_FLOAT,0,0,0);
 		
 	}
-	
 	if(usingUV){
 			
 			glEnableVertexAttribArray(uvAttribLoc);
@@ -410,7 +501,6 @@ void Polygon::Draw(){
 			glVertexAttribPointer(uvAttribLoc,2,GL_FLOAT,0,0,0);
 		
 	}
-	
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, indiceVbo);	
 	glDrawElements(drawType,indices.size(),GL_UNSIGNED_INT,0);
 	glDisableVertexAttribArray(posAttribLoc);
@@ -427,8 +517,7 @@ void Polygon::Draw(){
 void Polygon::SetDrawType(unsigned int i){
 	drawType = i;
 }
-Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart){
-	AddTexture(FontTex,0);
+Text::Text(Texture FontTex,float fromx, float tox, float fromy, float toy, int lines, int charsPerLine, int textStart,float fontSize){
 	this->fromx = fromx;
 	this->tox = tox;
 	this->fromy = fromy;
@@ -436,30 +525,47 @@ Text::Text(Texture * FontTex,float fromx, float tox, float fromy, float toy, int
 	this->lines = lines;
 	this->charsPerLine = charsPerLine;
 	this->textStart = textStart;
-	
-	float verts[] = {0,0,0,1,1,1,1,0};
+	FontSize = fontSize;
+	float verts[] = {0,0,0,fontSize,fontSize,fontSize,fontSize,0};
 	unsigned int indices[] = {0,1,2,3};
-	
-	Quad = Polygon(std::vector<float>(verts,verts + 8), std::vector<unsigned int>(indices, indices + 4),std::vector<float>(),std::vector<float>(),2);
+	float uvs[] = {0,1,0,0,1,0,1,1};
+	Quad = Polygon(std::vector<float>(verts,verts + 8), std::vector<unsigned int>(indices, indices + 4),std::vector<float>(),std::vector<float>(uvs, uvs+8),0,2);
 	Quad.AddTexture(FontTex,0);
 }
+
 void Text::SetText(std::string text){
 	this->text = text;
 }
-void Text::Draw(){
-	ActivateTextures();
+void Text::Draw(float x, float y, float rotation){
 	float charSizeX = (tox - fromx)/charsPerLine;
 	float charSizeY = (toy - fromy)/lines;
+	Vec savedZoomLv = currentZoomLevel;
+	int newlines = 0;
+	int column = 0;
 	for(int i = 0; i < text.length(); i++){
+		
 		char letter = text[i];
+		if(letter =='\n'){
+			newlines +=1;
+			column = 0;
+			continue;
+		}
+		
 		int index = letter - this->textStart;
 		if( index < 0){
 			index = 0;
 		}
 		int line = index/charsPerLine;
+		int col = index - line*charsPerLine;
 		
-		//std::cout << "Drawing a " << letter << "\n";
-		Quad.Draw();
+		float x1 = col*charSizeX-0.005;
+		float x2 = x1 + charSizeX; 
+		float y1 = line*charSizeY+0.005;
+		float y2 = y1 + charSizeY-0.007;;
+		float newuvs[] ={x1,y2,x1,y1,x2,y1,x2,y2};
+		Quad.ReloadUV(std::vector<float>(newuvs,newuvs+8));
+		Draw2(x + column*0.9*FontSize,y-newlines*FontSize,0,&Quad);
+		column +=1;
 	}
 }
 
@@ -467,7 +573,8 @@ void Text::Draw(){
 Vec::Vec(){
 	X = 0;
 	Y = 0;
-	} 
+} 
+	
 Vec::Vec(float x,float y){
 	X = x;
 	Y = y;
@@ -506,6 +613,7 @@ void LightSystem::Activate(){
 	
 	delete []xydata;
 	delete []rgbdata;
+	delete []idata;
 	
 	}
 Light * LightSystem::GetLight(int channel){

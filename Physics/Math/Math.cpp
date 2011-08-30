@@ -11,7 +11,7 @@
 
 
 	Vec2::Vec2(){
-		Vec2(0,0);
+		SetValue(0,0);
 	}
 
 	Vec2::Vec2(double x,double y){

@@ -19,6 +19,7 @@ namespace Dormir{
 	class Model;
 	class Constraint;
 	class Joint;
+	class Polygon;
 
 
 	class CollisionNode{
@@ -43,6 +44,13 @@ namespace Dormir{
 		}
 	};
 
+	class GhostNode{
+	public:
+		Dormir::PhysicsObject * obj;
+		Dormir::Polygon * Ghostpolygon;
+		double intersection;
+	};
+
 	class Core{
 	public:
 		Core(unsigned int nMaxNodes);
@@ -53,9 +61,11 @@ namespace Dormir{
 		bool LoadObject(Dormir::PhysicsObject *);
 		bool LoadConstraint(Dormir::Constraint *);
 		bool LoadJoint(Dormir::Joint *);
+		bool LoadGhostPolygon(Dormir::Polygon *);
 		bool UnloadObject(Dormir::PhysicsObject *);
 		bool UnloadConstraint(Dormir::Constraint *);
 		bool UnloadJoint(Dormir::Joint *);
+		bool UnloadGhostPolygon(Dormir::Polygon *);
 
 		void AddCollisionNode(CollisionNode);
 
@@ -72,13 +82,14 @@ namespace Dormir{
 		double Clamp(double value,double lower,double upper);
 		CollisionNode GetNextCollision();
 		bool CollisionsReady();
-		std::list<CollisionNode> savedNodes;
+		GhostNode GetNextGhostNode();
+		bool GhostNodesReady();
+
 
 
 		Dormir::PhysicsObject * PointInsideObject(int x,int y);
 		Dormir::PhysicsObject * PointInsideObject(Vec2);
-		std::list<Dormir::PhysicsObject *> Objects;
-		std::vector<Dormir::Joint *> Joints;
+
 
 		friend class SeperatingAxis;
 		friend class LCPSolver;
@@ -95,10 +106,19 @@ namespace Dormir{
 		double CalculateRelativeVelocity(Vec2 n,Vec2 rf,Vec2 rt,PhysicsObject * from,PhysicsObject * to);
 		Dormir::SeperatingAxis * CollisionDetecter;
 		std::vector<Dormir::Constraint *> constraints;
-		CollisionNode * Nodes,* PrevNodes,* ImpulseNodes,* ContactNodes;
+		std::list<Dormir::PhysicsObject *> Objects;
+		std::vector<Dormir::Joint *> Joints;
+		std::list<Polygon *> GhostPolygons;
+		CollisionNode * Nodes,* ImpulseNodes;
+		std::list<Dormir::GhostNode> GhostNodes;
+
 		Vec2 Gravity;
-		unsigned int allocatedNodes,allocatedContactNodes,allocatedImpulseNodes,maxNodes,runs;
+		unsigned int allocatedNodes,allocatedContactNodes,allocatedImpulseNodes,maxNodes,runs,currentCollisionNode;
 		double velocityDampening,rotationDampening,slopOverlap,biasOverlap;
+
+
+
+		//std::list<CollisionNode> savedNodes;
 	};
 
 }

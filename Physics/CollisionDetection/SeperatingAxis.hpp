@@ -15,7 +15,9 @@ class IntersectionSolver;
 		void FindIntersection(Vec2 P1,Vec2 P2,Vec2 P3,Vec2 P4,Vec2 * C);
 	private:
 		void CollisionDetection(Dormir::PhysicsObject * obj1,Dormir::PhysicsObject * obj2);
+		void CollisionDetection(Dormir::PhysicsObject * obj,Dormir::Polygon * Ghost);
 		void SAT(Dormir::Polygon * P1,Dormir::Polygon * P2,Dormir::PhysicsObject * obj1,Dormir::PhysicsObject * obj2);
+		void SAT(Dormir::Polygon * GP,Dormir::Polygon * P,Dormir::PhysicsObject * obj);
 		bool PreCollisionDetection(Dormir::Polygon * obj1,Dormir::Polygon * obj2);
 		double FindMax(double [],unsigned int);
 		double FindMin(double [],unsigned int);

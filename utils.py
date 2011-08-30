@@ -6,27 +6,50 @@ from copy import copy
 import random
 import math
 import Image
+texdict = {}
 def LoadImageAsTexture(path):
+	if texdict.has_key(path):
+		return texdict[path]
+	
 	img = Image.open(path)
+	if img.mode is "RGBA":
+		channels = 4
+	elif img.mode is "RGB":
+		channels = 3
 	texdata = img.tostring()
-	tex = gfw.Texture(img.tostring(),img.size[0],img.size[1],4,1)
+	tex = gfw.Texture(img.tostring(),img.size[0],img.size[1],channels,1)
+	texdict[path] = tex
 	return tex
 
 def MakePolygon(verts, indices,colors,uvs):
-	nvertexes = numpy.array(verts,dtype=numpy.float32)
-	nindices = numpy.array(indices,dtype=numpy.uint32)
-	ncolor = numpy.array(colors,dtype=numpy.float32)
-	nuv = numpy.array(uvs,dtype=numpy.float32)
-	return gfw.Polygon(nvertexes.tostring(),len(nvertexes), nindices.tostring(),len(nindices),ncolor.tostring(),len(ncolor),nuv.tostring(),len(nuv))
+	
+	if len(colors) is 3:
+		while len(colors) < len(verts)+3:
+			colors.extend(colors[0:3])
+	if len(indices)/2 is 0:
+		indices = range(0,len(verts))
+	return gfw.Polygon( gfw.FloatVector(verts), gfw.UIntVector(indices), gfw.FloatVector(colors), gfw.FloatVector(uvs))
 
-def makeGfxBox(sizex,sizey,color = [0,0,0]):
+def makeGfxBox(sizex,sizey,color = [0,0,0],texture = 0):
 	sx = sizex/2
 	sy = sizey/2
 	col = []
 	for i in range(0,4):
 		col.extend(color)
-	return MakePolygon([-sx,-sy, sx,-sy, sx,sy, -sx,sy],[0,1,2,3],col,[0,0, 1,0, 1,-1, 0,-1])
+	outpoly = MakePolygon([-sx,-sy, sx,-sy, sx,sy, -sx,sy],[0,1,2,3],col,[0,0, 1,0, 1,-1, 0,-1])
+	if not texture is 0:
+		outpoly.AddTexture(texture,0)
+	return outpoly
 
+def MakeBox(size,color = [0,0,0], texture = 0):
+	sx = sizer[0]/2
+	sy = size[1]/2
+	obj = MakeCompleteObject([-sx,-sy, sx,-sy, sx,sy, -sx,sy],color)
+	if not texture is 0:
+		obj.AddTexture(texture,0)
+	return obj
+	
+	
 def MakePhysicsBox(sizex, sizey,mass,position):
 	sx = sizex/2
 	sy = sizey/2
@@ -45,8 +68,6 @@ def MakeCompleteObject(verts,color = [],uvs = []):
 	o1 = physics.PhysicsObject()
 	p1 = physics.Polygon()
 	
-	
-	
 	for i in range(0,len(verts),2):
 		p1.AddVertex(verts[i],verts[i+1])
 	if len(color) == 3:
@@ -56,13 +77,18 @@ def MakeCompleteObject(verts,color = [],uvs = []):
 	o1.LoadPolygon(p1)
 	o1.CalculateMomentofInertia()
 	p2 = o1.GetPosition()
-	o1.setMass(0)
+	
+	
+	if math.fabs(p2.x) + math.fabs(p2.y) >1000000000000:
+		return MakeCompleteObject(verts,color,uvs)
 	for i in range(0,len(verts),2):
 		verts[i] -= p2.x
 		verts[i+1] -= p2.y
 	gfx = MakePolygon(verts,range(0,len(verts)),color,uvs)
 	return core.GameObject(gfx,o1)
-	print p2.x,p2.y
+	
+	
+	
 def MakePhysicsPolygon(vertexes):
 	o1 = physics.PhysicsObject()
 	p1 = physics.Polygon()

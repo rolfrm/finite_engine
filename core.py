@@ -6,10 +6,11 @@ import shaders
 from game_object import *
 class Core:
 	def __init__(self):
-		gfw.Init(1000,400,False,2)
+		gfw.Init(800,800,False,2)
 		self.s1 = gfw.Shader(shaders.ObjectLightning[0],shaders.ObjectLightning[1])
 		gfw.SetActiveShader(self.s1);
-		gfw.Zoom(500,250)
+		gfw.Zoom(400,400)
+		gfw.SetBGColor(0,0,0)
 		self.PhysicsCore = physics.Core(100)
 		self.PhysicsCore.setGravity(0.0,-0.4)
 		self.GameObjects = []
@@ -21,22 +22,30 @@ class Core:
 		self.nodeplayer = snd.NodePlayer(10)
 		self.nodeplayer.Connect(self.PA,0,0)
 		self.Level = 0
+		self.Camera = [0,0]
+	def ZSort(self):
+		def sorter(x,y):
+			if x.z < y.z:
+				return 1
+			elif x.z >= y.z:
+				return -1
+		self.GameObjects.sort(cmp=sorter)
+	def SetCamera(self, x,y):
+		self.Camera[0] = x
+		self.Camera[1] = y
 	def doMainLoop(self):
 		i = 0
 		self.Running = True
+		
 		while self.Running == True:
 			if not self.Level is 0:
 				self.Level.Update(0.01)
 			i += 1
 			try:
-					
+				self.s1.SetUniform2f(self.Camera[0],self.Camera[1],"CameraPosition")
 				for item in self.GameObjects:
-					if isinstance(item,Player):
-							self.s1.SetUniform2f(item.x,item.y,"CameraPosition")	
-							#print item.x,item.y
-							#item.Body.setInertia(0)
 					if item.Visual is not 0:
-						item.Draw()
+						item.Draw(self.Camera)
 					if item.Body is not 0:
 						item.UpdatePos()
 					item.Update(0.1)
@@ -59,7 +68,6 @@ class Core:
 				for item in kev:
 					#print item.key
 					if item.key == 257:
-						print "ESCAPE!"
 						self.Running = False
 					for j in self.KeyEventHandlers:
 						j.KeyEventHandler(j,item.key,item.action)
@@ -102,11 +110,15 @@ class Core:
 			self.KeyEventHandlers.remove(gameObject)
 		except ValueError:
 			pass
-	def PlaySound(self,node):
-		self.nodeplayer.PlayNode(node,1)
-	def LoadLevel(self,LevelList):
+	def UnloadAll(self):
 		for i in self.GameObjects[:]:
 			self.UnloadObject(i)
+			
+	def PlaySound(self,node):
+		self.nodeplayer.PlayNode(node,1)
+		
+	def LoadLevel(self,LevelList):
+		self.UnloadAll()
 		for i in LevelList:
+			
 			self.LoadObject(i)
-		print len(self.GameObjects)
