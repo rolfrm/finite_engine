@@ -44,10 +44,14 @@ int main(int argc,char ** argv){
 	O2.LoadPolygon(Dormir::GenerateBox(850,550,100,100));
 
 	pCore.LoadObject(&O2);
-
+/*
 	Dormir::Sprite S2(100,100);
 	S2.SetTexture(gCore.GetTexture("Sprites/stagePart1.png"));
 	S2.setReference(&O2);
+*/
+
+	Dormir::PhysicSprite S2(&*O2.Body.begin());
+
 
 	gCore.LoadSprite(&S2);
 
@@ -66,7 +70,7 @@ int main(int argc,char ** argv){
 	Dormir::Joint J(&O,&O2,800,600,0);
 
 
-//	pCore.LoadJoint(&J);
+	pCore.LoadJoint(&J);
 
 
 	//Dormir::Joint J2(&O2,&O3,1150,650);
@@ -78,7 +82,6 @@ int main(int argc,char ** argv){
 	int running=!glfwGetKey( GLFW_KEY_ESC ) &&glfwGetWindowParam( GLFW_OPENED );
 	while(running){
 		double start=glfwGetTime();
-		glClear(GL_COLOR_BUFFER_BIT);
 		if(glfwGetKey(GLFW_KEY_F1)){
 			pCore.setGravity(0,-0.4);
 		}
@@ -88,7 +91,7 @@ int main(int argc,char ** argv){
 		pCore.Run();
 		gCore.Run();
 		running= !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
-		glfwSwapBuffers();
+
 		double finish=glfwGetTime();
 		if(0.01-(finish-start)>0){
 			glfwSleep(0.01-(finish-start));

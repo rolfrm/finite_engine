@@ -16,6 +16,7 @@ namespace Dormir{
 
 	GLfloat whole [] = {0,1,0,0,1,0,1,1};
 
+
 	Sprite::Sprite(int nWidth,int nHeight,unsigned int nVertices){
 		width=nWidth;
 		height=nHeight;
@@ -162,6 +163,10 @@ namespace Dormir{
 			start=glfwGetTime();
 			SetTexCoords();
 		}
+	}
+
+	PhysicSprite::~PhysicSprite(){
+		delete [] vertex;
 	}
 
 

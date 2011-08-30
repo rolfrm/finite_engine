@@ -18,6 +18,7 @@ namespace Dormir{
 
 	class PhysicsObject;
 	class Polygon;
+	class GraphicsCore;
 
 	struct AnimationFrame{
 		GLfloat * TexCoords;
@@ -73,6 +74,7 @@ namespace Dormir{
 	class PhysicSprite:public Sprite{
 	public:
 		PhysicSprite(Polygon *);
+		~PhysicSprite();
 
 		void Update();
 	private:

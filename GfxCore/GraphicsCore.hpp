@@ -27,23 +27,35 @@ namespace Dormir{
 
 	class Sprite;
 
+	class PhysicSprite;
+
+	class PhysicsObject;
+
 
 	class GraphicsCore{
 	public:
 		GraphicsCore(unsigned int Width,unsigned int Height);
+		~GraphicsCore();
 
 		void LoadSprite(Sprite * S);
+		void UnloadSprite(Sprite * S);
 		void GenerateTexture(std::string path);
+		void GenerateNewTexCoord(std::string key,unsigned int size);
 		GLuint GetTexture(std::string path){return TextureDatabase[path];};
+		GLfloat * GetTexCoord(std::string key){return TexCoordDatabase[key];};
+		void WriteTexCoord(std::string key,unsigned int index,float value);
 		void Run();
 		int Origin[2];
 		unsigned int Width,Height;
 
 	private:
 		std::map<std::string,GLuint> TextureDatabase;
+		std::map<std::string,GLfloat *> TexCoordDatabase;
 		std::list<Sprite *> Sprites;
 
 	};
+
+
 
 	char *textFileRead(char *fn);
 	int textFileWrite(char *fn, char *s);

@@ -1,6 +1,8 @@
 #include "GraphicsCore.hpp"
 #include <math.h>
 #include "Sprite/Sprite.hpp"
+#include "../Physics/Objects/PhysicsObject.h"
+#include "../Physics/Shapes/Polygon.h"
 
 
 #include <iostream>
@@ -26,6 +28,15 @@ namespace Dormir{
 	//	glTranslated(-(double)Width,-(double)Height,0);
 		Origin[0]=-(double)Width/2;
 		Origin[1]=-(double)Height/2;
+	}
+
+	GraphicsCore::~GraphicsCore(){
+		for(std::map<std::string,GLuint>::iterator it=TextureDatabase.begin();it!=TextureDatabase.end();it++){
+			glDeleteTextures(1,&it->second);
+		}
+		for(std::map<std::string,GLfloat *>::iterator it=TexCoordDatabase.begin();it!=TexCoordDatabase.end();it++){
+			delete [] it->second;
+		}
 	}
 
 	void GraphicsCore::GenerateTexture(std::string path){
@@ -57,6 +68,14 @@ namespace Dormir{
 		TextureDatabase.insert(std::pair<std::string,GLuint>(path,tex));
 	}
 
+	void GraphicsCore::GenerateNewTexCoord(std::string name,unsigned int size){
+		GLfloat * t = new GLfloat [size*2];
+		TexCoordDatabase.insert(std::pair<std::string,GLfloat *>(name,t));
+	}
+
+	void GraphicsCore::WriteTexCoord(std::string key,unsigned int index,float value){
+		TexCoordDatabase[key][index]=value;
+	}
 
 
 	void GraphicsCore::LoadSprite(Sprite * S){
@@ -64,7 +83,16 @@ namespace Dormir{
 		Sprites.sort(LevelComparison);
 	}
 
+	void GraphicsCore::UnloadSprite(Sprite * S){
+		for(std::list<Sprite *>::iterator it=Sprites.begin();it!=Sprites.end();it++){
+			if(*it==S){
+				Sprites.erase(it);
+			}
+		}
+	}
+
 	void GraphicsCore::Run(){
+		glClear(GL_COLOR_BUFFER_BIT);
 		glPushMatrix();
 		glTranslatef(Origin[0],Origin[1],0);
 		for(std::list<Sprite *>::iterator it=Sprites.begin();it!=Sprites.end();it++){
@@ -72,8 +100,8 @@ namespace Dormir{
 			(*it)->Draw();
 		}
 		glPopMatrix();
+		glfwSwapBuffers();
 	}
-
 
 
 
