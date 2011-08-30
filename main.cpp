@@ -24,7 +24,7 @@ Dormir::GraphicsCore gCore(1440,900);
 
 
 int main(int argc,char ** argv){
-/*	pCore.setGravity(0,-0.4);
+	pCore.setGravity(0,-0.4);
 
 	gCore.GenerateTexture("Sprites/stagePart1.png");
 	gCore.GenerateTexture("Sprites/stagePart4.png");
@@ -66,11 +66,14 @@ int main(int argc,char ** argv){
 	Dormir::Joint J(&O,&O2,800,600,0);
 
 
-	pCore.LoadJoint(&J);
+//	pCore.LoadJoint(&J);
 
 
 	//Dormir::Joint J2(&O2,&O3,1150,650);
 	//pCore.LoadJoint(&J2);
+
+	Dormir::Polygon Trigger = Dormir::GenerateBox(0,0,10000,400);
+
 
 	int running=!glfwGetKey( GLFW_KEY_ESC ) &&glfwGetWindowParam( GLFW_OPENED );
 	while(running){
@@ -91,13 +94,4 @@ int main(int argc,char ** argv){
 			glfwSleep(0.01-(finish-start));
 		}
 	}
-*/
-
-	std::multimap<int,int> M;
-	M.insert(std::pair<int,int>(1,2));
-	M.insert(std::pair<int,int>(2,4));
-	M.insert(std::pair<int,int>(1,3));
-	std::multimap<int,int>::iterator it=M.find(1);
-	for(unsigned int i=0;i<M.count(1);i++,it++)
-		std::cout<<it->second<<" found\n";
 }
