@@ -77,7 +77,7 @@ def squareStep(curmap,scaling):
 def MakeMap():
 	Map = numpy.zeros((7,7))
 	#Map[2][2] = 5
-	for i in range(0,7):
+	for i in range(0,4):
 		scaling = 0.5**float(i)
 		Map = squareStep(Map,scaling)
 		Map = diamondStep(Map,scaling)

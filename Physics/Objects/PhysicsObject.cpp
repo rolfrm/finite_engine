@@ -95,9 +95,10 @@ namespace Dormir{
 			TotalArea+=it->getArea();
 		}
 		Pos.SetValue(0,0);
-		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++)
+		for(std::list<Dormir::Polygon>::iterator it=Body.begin();it!=Body.end();it++){
 			Pos+=it->getCentroid()*(it->getArea()/TotalArea);
-
+			//it->getCentroid().Print();
+		}
 		if(mass==0){
 			inertia=0;
 			invInertia=0;

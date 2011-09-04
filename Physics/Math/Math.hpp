@@ -13,8 +13,7 @@
 
 	class Vec2{
 	public:
-		Vec2(double x,double y);
-		Vec2();
+		Vec2(double x=0,double y=0);
 
 		void operator += (Vec2);
 		void operator *= (double);

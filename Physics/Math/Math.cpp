@@ -10,11 +10,7 @@
 #include <iostream>
 
 
-	Vec2::Vec2(){
-		Vec2(0,0);
-	}
-
-	Vec2::Vec2(double x,double y){
+		Vec2::Vec2(double x,double y){
 		SetValue(x,y);
 	}
 

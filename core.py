@@ -117,8 +117,13 @@ class Core:
 	def PlaySound(self,node):
 		self.nodeplayer.PlayNode(node,1)
 		
-	def LoadLevel(self,LevelList):
+	def LoadLevelList(self,LevelList):
 		self.UnloadAll()
 		for i in LevelList:
-			
 			self.LoadObject(i)
+		
+	def LoadLevel(self,level):
+		levelList = level.GetItems()
+		self.LoadLevelList(levelList)
+		self.ZSort()
+		self.Level = level

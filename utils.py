@@ -12,9 +12,10 @@ def LoadImageAsTexture(path):
 		return texdict[path]
 	
 	img = Image.open(path)
-	if img.mode is "RGBA":
+	channels = 1
+	if img.mode == 'RGBA':
 		channels = 4
-	elif img.mode is "RGB":
+	elif img.mode == 'RGB':
 		channels = 3
 	texdata = img.tostring()
 	tex = gfw.Texture(img.tostring(),img.size[0],img.size[1],channels,1)
@@ -26,8 +27,8 @@ def MakePolygon(verts, indices,colors,uvs):
 	if len(colors) is 3:
 		while len(colors) < len(verts)+3:
 			colors.extend(colors[0:3])
-	if len(indices)/2 is 0:
-		indices = range(0,len(verts))
+	if len(indices) is 0:
+		indices = range(0,len(verts)/2)
 	return gfw.Polygon( gfw.FloatVector(verts), gfw.UIntVector(indices), gfw.FloatVector(colors), gfw.FloatVector(uvs))
 
 def makeGfxBox(sizex,sizey,color = [0,0,0],texture = 0):
@@ -80,6 +81,8 @@ def MakeCompleteObject(verts,color = [],uvs = []):
 	
 	
 	if math.fabs(p2.x) + math.fabs(p2.y) >1000000000000:
+		print p2.x,p2.y
+		quit()
 		return MakeCompleteObject(verts,color,uvs)
 	for i in range(0,len(verts),2):
 		verts[i] -= p2.x
@@ -87,7 +90,7 @@ def MakeCompleteObject(verts,color = [],uvs = []):
 	gfx = MakePolygon(verts,range(0,len(verts)),color,uvs)
 	return core.GameObject(gfx,o1)
 	
-	
+
 	
 def MakePhysicsPolygon(vertexes):
 	o1 = physics.PhysicsObject()

@@ -116,6 +116,7 @@ def SpeedRun(length):
 	for i in range(0,length):
 		ground = MakeCompleteObject([-100-i,0, 100+i,0, 100+i,-100,-100-i,-100],color[:],[0,-1, 1,-1, 1,0, 0,0])
 		ground.SetPos(nextpos,lasty)
+		ground.parralax = 0.9
 		lv.append(ground)
 		nextpos = nextpos + 200+i*i
 		lasty = lasty + (random.random()-0.5)*100
@@ -126,7 +127,7 @@ def SpeedRun(length):
 
 class PickUpable(ActivateAble):
 	def __init__(self,gameobject):
-		super(PickUpable,self).__init__(gameobject.Visual,gameobject.Body,"Pickupable, take[ctrl]")
+		super(PickUpable,self).__init__(gameobject.Visual,gameobject.Body,"Take Pickupable")
 		self.CollisionResponse = (lambda x,other,y: self.Col(other))
 		self.usage = 0
 	def Use(self):
@@ -167,7 +168,7 @@ class SpeedRunLevel(core.LevelBase):
 		self.player.Body.setMass(1)
 		portal = Portal(self.MainScreen,gameCore)
 		portal.SetPos(-50,100)
-		self.GC.LoadLevel(self.GameObjects)
+		self.GC.LoadLevelList(self.GameObjects)
 		self.GC.LoadObject(self.player)
 		self.GC.LoadObject(self.textrendering)
 		self.GC.LoadObject(portal)
@@ -196,10 +197,11 @@ class Portal(ActivateAble):
 		go = MakeCompleteObject([0,0,64,0,64,96,0,96],[0.1,0.1,0.2],[0,1, 1,1, 1,0, 0,0])
 
 		go.Body.setMass(0)
-		super(Portal,self).__init__(go.Visual,0,"Door to " + to)
+		super(Portal,self).__init__(go.Visual,0,"Go through door to " + to)
 
-class MainScreen:
+class MainScreen(core.LevelBase):
 	def __init__(self,gameCore):
+		super(MainScreen,self).__init__()
 		self.GC = gameCore
 		self.player = Player(self.GC)
 		self.Portal = Portal(SpeedRunLevel(self.GC,self.player,self),gameCore, "The running grounds")
@@ -232,12 +234,12 @@ class MainScreen:
 		self.textrendering.z = 1
 		self.textrendering.SetPos(-200,200)
 		
-		self.ItemList = [self.player,self.floor,self.Portal,self.item,self.textrendering,self.wall,self.window,self.OutsideDoor]
+		self.AddItems([self.player,self.floor,self.Portal,self.item,self.textrendering,self.wall,self.window,self.OutsideDoor])
 	def LoadLevel(self):
 		gfw.SetBGColor(0,0,0)
 		self.player.SetPos(100,100)
 		self.player.z =-1
-		self.GC.LoadLevel(self.ItemList)
+		self.GC.LoadLevelList(self.ItemList)
 		self.GC.ZSort()
 
 
