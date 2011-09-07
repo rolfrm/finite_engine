@@ -1,5 +1,24 @@
-Før ludum dare:
-	Text rendering
-	Core -> load /unload
-	Mouse wheel support
-	
+***Guided map generator***
+  Ideen er at man giver map generatoren et skelet af banen og den derefter generere den uden om skelettet.
+  Den skal gøre det i chunks, således at man kan spesificere hvilken del af banen man ønsker genereret.
+
+Fremgangsmåde 1:
+Lad os sige at level dataet ser således ud: 
+   (x,y),(type),(x,y),(type),(x,y)...
+
+Hvor xy er højderne
+
+     -xy--
+xy--/      \
+	    - xy ... 
+
+og typen er det som kontrollere hvordan terrainet er konstrueret. Så en chunk bliver konstrueret imellem xy'erne
+
+- GetChunks x1,x2 -> Chunks fra x1 til x2
+	- map chunks i den afstand
+		- GenChunk i	
+	 		1: Interpolate xy1, xy2 med interpolations funktion f
+			2: Preprocess points
+			3: trianguler m. Marching Squares
+			4: Process img
+			5: Process Game objects
