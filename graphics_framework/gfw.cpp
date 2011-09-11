@@ -261,6 +261,16 @@ void Shader::SetUniform3fv(float * data,unsigned int count, const char * uniform
 		int loc = GetUniformLocation(uniformname);
 		glUniform3fv(loc,count,data);
 }
+void Shader::SetUniform3fv(std::vector<float> fvec,int count, const char * uniformname){
+	int loc = GetUniformLocation(uniformname);
+	glUniform3fv(loc,count,&fvec[0]);
+}	
+
+void Shader::SetUniform2fv(std::vector<float> fvec,int count, const char * uniformname){
+	int loc = GetUniformLocation(uniformname);
+	glUniform2fv(loc,count,&fvec[0]);
+}	
+
 void Shader::SetUniform2fv(float * data,unsigned int count, const char * uniformname){
 		int loc = GetUniformLocation(uniformname);
 		glUniform2fv(loc,count,data);
@@ -622,3 +632,21 @@ Light * LightSystem::GetLight(int channel){
 void LightSystem::SetLight(Light light, int channel){
 	lights[channel] = light;
 	}
+
+
+FrameBuffer::FrameBuffer(Texture outputTexture){
+	tex = outputTexture;
+	glGenFramebuffers(1,&fboId);
+	Bind();
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, outputTexture.GetGLTexture(), 0);
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	std::cout << status << " " << GL_FRAMEBUFFER_COMPLETE << "\n";
+	UnBind();
+}
+
+void FrameBuffer::Bind(){
+	glBindFramebuffer(GL_FRAMEBUFFER, fboId);
+}
+void FrameBuffer::UnBind(){
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+}

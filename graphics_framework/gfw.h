@@ -115,6 +115,8 @@ class Shader{
 	void SetUniform1fv(float * data, unsigned int count, const char * uniformname);
 	void SetUniform2fv(float * data,unsigned int count, const char * uniformname);
 	void SetUniform3fv(float * data,unsigned int count, const char * uniformname);
+	void SetUniform3fv(std::vector<float> fvec,int count, const char * uniformname);
+	void SetUniform2fv(std::vector<float> fvec,int count, const char * uniformname);
 	void SetUniform1iv(int * data, unsigned int count, const char * uniformname);
 	
 	unsigned int ShaderProgram;
@@ -169,6 +171,16 @@ class LightSystem{
 		void Activate();
 		Light * GetLight(int channel);
 		void SetLight(Light light, int channel);
+};
+
+class FrameBuffer{
+	public:
+	FrameBuffer(Texture outputTexture);
+	void Bind();
+	void UnBind();
+	
+	Texture tex;
+	unsigned int fboId;
 };
 
 

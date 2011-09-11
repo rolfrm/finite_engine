@@ -62,7 +62,7 @@ def MakeChunk(places,interpolator = 0,objectInserter = 0,blockHandler = 0):
 
 def InterPolataur(points):
 	out = []
-	iterations = 4
+	iterations = 6
 	for i in range(0,iterations):
 		out = []
 		for i in range(0,len(points)-1):
@@ -90,9 +90,6 @@ def GetObjPosition(surfList,x):
 				break
 	return x,y
 	
-class TestTrack(LevelBase):
-	def __init__(self):
-		super(TestTrack,self).__init__()
 
 	
 	
