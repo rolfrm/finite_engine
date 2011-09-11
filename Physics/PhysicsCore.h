@@ -62,14 +62,17 @@ namespace Dormir{
 		bool LoadConstraint(Dormir::Constraint *);
 		bool LoadJoint(Dormir::Joint *);
 		bool LoadGhostPolygon(Dormir::Polygon *);
+		unsigned int LoadObjectCluster(std::vector<Dormir::PhysicsObject *> Cluster);
 		bool UnloadObject(Dormir::PhysicsObject *);
 		bool UnloadConstraint(Dormir::Constraint *);
 		bool UnloadJoint(Dormir::Joint *);
 		bool UnloadGhostPolygon(Dormir::Polygon *);
+		bool UnloadCluster(unsigned int i);
 
 		void AddCollisionNode(CollisionNode);
 
 		void setGravity(double x,double y){Gravity.x=x,Gravity.y=y;};
+		void setGravity(Vec2 nGravity){Gravity=nGravity;};
 
 		Vec2 getGravity(){return Gravity;};
 
@@ -89,6 +92,8 @@ namespace Dormir{
 
 		Dormir::PhysicsObject * PointInsideObject(int x,int y);
 		Dormir::PhysicsObject * PointInsideObject(Vec2);
+
+		std::vector<std::vector<Dormir::PhysicsObject *> > ObjectClusters;
 
 
 		friend class SeperatingAxis;

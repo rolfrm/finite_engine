@@ -37,6 +37,12 @@ namespace Dormir{
 		for(std::list<Dormir::PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
 			(*it)->Advance();
 		}
+		for(unsigned int i=0;i<ObjectClusters.size();i++){
+			for(unsigned int j=0;j<ObjectClusters[i].size();j++){
+				ObjectClusters[i][j]->Advance();
+			}
+		}
+
 
 		CollisionDetecter->Run();
 
@@ -44,6 +50,14 @@ namespace Dormir{
 			(*it)->AddForce(Gravity*(*it)->GetMass());
 			(*it)->AddForce((*it)->GetVelocity()*-velocityDampening);
 			(*it)->AddTorque((*it)->GetAnglespeed()*-rotationDampening);
+		}
+
+		for(unsigned int i=0;i<ObjectClusters.size();i++){
+			for(unsigned int j=0;j<ObjectClusters[i].size();j++){
+				ObjectClusters[i][j]->AddForce(Gravity*ObjectClusters[i][j]->GetMass());
+				ObjectClusters[i][j]->AddForce(ObjectClusters[i][j]->GetVelocity()*-velocityDampening);
+				ObjectClusters[i][j]->AddTorque(ObjectClusters[i][j]->GetAnglespeed()*-rotationDampening);
+			}
 		}
 
 
@@ -195,6 +209,11 @@ namespace Dormir{
 		return true;
 	}
 
+	unsigned int Core::LoadObjectCluster(std::vector<PhysicsObject * > Cluster){
+		ObjectClusters.push_back(Cluster);
+		return ObjectClusters.size()-1;
+	}
+
 
 	bool Core::UnloadObject(Dormir::PhysicsObject * obj){
 		for(std::list<Dormir::PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
@@ -227,6 +246,12 @@ namespace Dormir{
 		return false;
 	}
 
+	bool Core::UnloadCluster(unsigned int i){
+		if(i>=ObjectClusters.size())
+			return false;
+		ObjectClusters.erase(ObjectClusters.begin()+i);
+	}
+
 	void Core::AddCollisionNode(Dormir::CollisionNode N){
 		if(allocatedNodes < maxNodes ){
 			Nodes[allocatedNodes]=N;
@@ -242,6 +267,15 @@ namespace Dormir{
 				itf->FindBounds();
 				if(itf->BoundingBox[0].x<x && x<itf->BoundingBox[1].x && itf->BoundingBox[0].y<y && y<itf->BoundingBox[1].y )
 					return *it;
+			}
+		}
+		for(unsigned int i=0;i<ObjectClusters.size();i++){
+			for(unsigned int j=0;j<ObjectClusters[i].size();j++){
+				for(std::list<Dormir::Polygon>::iterator itf=ObjectClusters[i][j]->Body.begin();itf!=ObjectClusters[i][j]->Body.end();itf++){
+					itf->FindBounds();
+					if(itf->BoundingBox[0].x<x && x<itf->BoundingBox[1].x && itf->BoundingBox[0].y<y && y<itf->BoundingBox[1].y )
+						return ObjectClusters[i][j];
+				}
 			}
 		}
 		return NULL;

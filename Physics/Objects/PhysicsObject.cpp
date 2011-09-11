@@ -74,6 +74,7 @@ namespace Dormir{
 		P.CalculateAxis();
 
 		Body.push_back(P);
+		CalculateMomentofInertia();
 		return true;
 	}
 
@@ -81,6 +82,7 @@ namespace Dormir{
 		for(std::list<Polygon>::iterator it=Plist.begin();it!=Plist.end();it++){
 			LoadPolygon(*it);
 		}
+		CalculateMomentofInertia();
 	}
 
 	void PhysicsObject::DeleteBody(){
