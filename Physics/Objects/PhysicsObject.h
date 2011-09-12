@@ -70,6 +70,7 @@ namespace Dormir{
 		void setFriction(double newMu){mu=newMu;};
 		void setAnglespeed(double a){angleSpeed=a;};
 		void setVelocity(double x,double y){Vel.x=x;Vel.y=y;};
+		void setVelocity(Vec2 V){Vel=V;};
 		void FindBounds();
 		void CalculateMomentofInertia();
 		//void SetGhost(bool isGhost);
