@@ -7,6 +7,7 @@
 
 //#include "../../Utils/VectorMath.h"
 #include <list>
+#include <map>
 #include "../Math/Math.hpp"
 
 #ifndef PHYSICSOBJECT_H_
@@ -85,6 +86,7 @@ namespace Dormir{
 		friend class Core;
 		std::list<Dormir::Polygon> Body;
 		std::list<Fixpoint *> AttachedPoints;
+		std::multimap<PhysicsObject *,CollisionNode *> PreviousCollisions;
 	protected:
 		void Init(Vec2 Pos,double e,double mu,double mass);
 		void AdvancePosition();

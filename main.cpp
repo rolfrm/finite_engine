@@ -53,6 +53,7 @@ void HandleTelekinesis(){
 
 
 int main(int argc,char ** argv){
+
 	pCore.setGravity(0,-0.4);
 	pCore.setVelocityDampening(0.02);
 	pCore.setRotationDampening(0.02);
@@ -60,52 +61,26 @@ int main(int argc,char ** argv){
 	gCore.GenerateTexture("Sprites/stagePart1.png");
 	gCore.GenerateTexture("Sprites/stagePart4.png");
 
-	Dormir::PhysicsObject O;
-	O.LoadPolygon(Dormir::GenerateBox(700,650,200,100));
+	Dormir::PhysicsObject Ground;
+	Ground.LoadPolygon(Dormir::GenerateBox(0,0,10000,200));
+	pCore.LoadObject(&Ground);
 
-	pCore.LoadObject(&O);
+	Dormir::PhysicSprite GroundSprite(&*Ground.Body.begin());
 
-	Dormir::Sprite S(200,100);
-	S.SetTexture(gCore.GetTexture("Sprites/stagePart4.png"));
-	S.setReference(&O);
+	gCore.LoadSprite(&GroundSprite);
 
-	gCore.LoadSprite(&S);
-/*
-	Dormir::PhysicsObject O2(1);
-	O2.LoadPolygon(Dormir::GenerateBox(850,550,100,100));
-
-	pCore.LoadObject(&O2);
-
-	Dormir::PhysicSprite S2(&*O2.Body.begin());
-	*/
-	std::vector<Dormir::PhysicsObject *> V;
-	Dormir::PhysicsObject * O1=&O,* O2;
-	for(unsigned int i=0;i<12;i++){
-		O2=new Dormir::PhysicsObject(1);
-		O2->LoadPolygon(Dormir::GenerateBox(810,575-i*50,20,50));
-		//O2->CalculateMomentofInertia();
-
-		V.push_back(O2);
-		//pCore.LoadObject(O2);
-
-		Dormir::PhysicSprite * S = new Dormir::PhysicSprite(&*O2->Body.begin());
-
-		gCore.LoadSprite(S);
-
-		pCore.LoadJoint(new Dormir::Joint(O2,O1,810,600-i*50));
-
-		O1=O2;
-
+	for(unsigned int i=0;i<15;i++){
+		for(unsigned int j=0;j<15;j++){
+			Dormir::PhysicsObject * O = new Dormir::PhysicsObject(1);
+			O->LoadPolygon(Dormir::GenerateBox(100*i,150+j*100,100,100));
+			pCore.LoadObject(O);
+		}
 	}
-
-
-	//pCore.ObjectClusters.push_back(V);
-
-	pCore.LoadObjectCluster(V);
-
 
 	int running=!glfwGetKey( GLFW_KEY_ESC ) &&glfwGetWindowParam( GLFW_OPENED );
 	int prev_f1=glfwGetKey(GLFW_KEY_F1),prev_f2=glfwGetKey(GLFW_KEY_F2);
+
+	int n=0,rate=0;
 	while(running){
 		double start=glfwGetTime();
 
@@ -124,11 +99,16 @@ int main(int argc,char ** argv){
 		prev_f2=glfwGetKey(GLFW_KEY_F2);
 
 		pCore.Run();
-		gCore.Run();
+	//	gCore.Run();
 
 		double finish=glfwGetTime();
+		n++;
+		rate+=1/(finish-start);
+		std::cout<<"frame rate = "<<rate/n<<"\n";
 		if(0.01-(finish-start)>0){
 			glfwSleep(0.01-(finish-start));
 		}
 	}
+
+
 }

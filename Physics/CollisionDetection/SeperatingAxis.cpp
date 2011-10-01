@@ -24,29 +24,6 @@ namespace Dormir{
 			(*it)->FindBounds();
 		}
 
-		/*
-		 * Experimental part for chains
-		 */
-		for(unsigned int i=0;i<core->ObjectClusters.size();i++){
-			for(unsigned int j=0;j<core->ObjectClusters[i].size();j++){
-				for(std::list<Dormir::Polygon>::iterator it=core->ObjectClusters[i][j]->Body.begin();it!=core->ObjectClusters[i][j]->Body.end();it++){
-					it->FindBounds();
-				}
-			}
-		}
-
-		for(unsigned int i=0;i<core->ObjectClusters.size();i++){
-			for(unsigned int j=0;j<core->ObjectClusters[i].size();j++){
-				for(std::list<Dormir::PhysicsObject *>::iterator it=core->Objects.begin();it!=core->Objects.end();it++){
-					CollisionDetection(core->ObjectClusters[i][j],*it);
-				}
-			}
-		}
-
-
-		/*
-		 * End
-		 */
 
 		for(std::list<Dormir::PhysicsObject *>::iterator it=core->Objects.begin();it!=core->Objects.end();it++){
 			std::list<Dormir::PhysicsObject *>::iterator it2=it;

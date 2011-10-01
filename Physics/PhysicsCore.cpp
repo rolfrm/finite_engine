@@ -37,11 +37,6 @@ namespace Dormir{
 		for(std::list<Dormir::PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
 			(*it)->Advance();
 		}
-		for(unsigned int i=0;i<ObjectClusters.size();i++){
-			for(unsigned int j=0;j<ObjectClusters[i].size();j++){
-				ObjectClusters[i][j]->Advance();
-			}
-		}
 
 
 		CollisionDetecter->Run();
@@ -50,14 +45,6 @@ namespace Dormir{
 			(*it)->AddForce(Gravity*(*it)->GetMass());
 			(*it)->AddForce((*it)->GetVelocity()*-velocityDampening);
 			(*it)->AddTorque((*it)->GetAnglespeed()*-rotationDampening);
-		}
-
-		for(unsigned int i=0;i<ObjectClusters.size();i++){
-			for(unsigned int j=0;j<ObjectClusters[i].size();j++){
-				ObjectClusters[i][j]->AddForce(Gravity*ObjectClusters[i][j]->GetMass());
-				ObjectClusters[i][j]->AddForce(ObjectClusters[i][j]->GetVelocity()*-velocityDampening);
-				ObjectClusters[i][j]->AddTorque(ObjectClusters[i][j]->GetAnglespeed()*-rotationDampening);
-			}
 		}
 
 
@@ -93,6 +80,7 @@ namespace Dormir{
 		}
 
 
+		/*
 		for(unsigned int i=0;i<allocatedNodes;i++){
 			for(unsigned int j=0;j<allocatedImpulseNodes;j++){
 				if(ImpulseNodes[j].to==Nodes[i].to && ImpulseNodes[j].from==Nodes[i].from && (ImpulseNodes[j].contact-Nodes[i].contact).GetNorm2()<1){
@@ -106,8 +94,36 @@ namespace Dormir{
 				}
 			}
 		}
+	*/
 
-		for(unsigned int l=0;l<30;l++){
+		/*
+		 * new search loop using maps
+		 */
+
+		for(unsigned int i=0;i<allocatedNodes;i++){
+			for(std::multimap<PhysicsObject *,CollisionNode *>::iterator it=Nodes[i].to->PreviousCollisions.equal_range(Nodes[i].from).first;it!=Nodes[i].to->PreviousCollisions.equal_range(Nodes[i].from).second;it++){
+
+				CollisionNode PrevNode = *it->second;
+				if(PrevNode.to==Nodes[i].to && PrevNode.from==Nodes[i].from && (PrevNode.contact-Nodes[i].contact).GetNorm2()<1){
+					Nodes[i].to->AddForce(Nodes[i].axis*PrevNode.I,Nodes[i].rt);
+					Nodes[i].from->AddForce(Nodes[i].axis*-PrevNode.I,Nodes[i].rf);
+					Nodes[i].I=PrevNode.I;
+					Nodes[i].to->AddForce(Nodes[i].tangent*PrevNode.T,Nodes[i].rt);
+					Nodes[i].from->AddForce(Nodes[i].tangent*-PrevNode.T,Nodes[i].rf);
+					Nodes[i].T=PrevNode.T;
+
+					break;
+				}
+
+			}
+		}
+
+
+		/*
+		 * end
+		 */
+
+		for(unsigned int l=0;l<20;l++){
 			double N=0;
 
 
@@ -163,6 +179,15 @@ namespace Dormir{
 			AddImpulseNode(Nodes[i]);
 		}
 
+		for(std::list<PhysicsObject *>::iterator it=Objects.begin();it!=Objects.end();it++){
+			(*it)->PreviousCollisions.clear();
+		}
+
+		for(unsigned int i=0;i<allocatedImpulseNodes;i++){
+			ImpulseNodes[i].from->PreviousCollisions.insert(std::pair<PhysicsObject*,CollisionNode *>(ImpulseNodes[i].to,&ImpulseNodes[i]));
+			ImpulseNodes[i].to->PreviousCollisions.insert(std::pair<PhysicsObject*,CollisionNode *>(ImpulseNodes[i].from,&ImpulseNodes[i]));
+		}
+
 		for(unsigned int i=0;i<allocatedNodes;i+=2){
 			Nodes[i].to->OnCollision(&Nodes[i]);
 			Nodes[i].from->OnCollision(&Nodes[i]);
@@ -209,10 +234,6 @@ namespace Dormir{
 		return true;
 	}
 
-	unsigned int Core::LoadObjectCluster(std::vector<PhysicsObject * > Cluster){
-		ObjectClusters.push_back(Cluster);
-		return ObjectClusters.size()-1;
-	}
 
 
 	bool Core::UnloadObject(Dormir::PhysicsObject * obj){
@@ -246,11 +267,6 @@ namespace Dormir{
 		return false;
 	}
 
-	bool Core::UnloadCluster(unsigned int i){
-		if(i>=ObjectClusters.size())
-			return false;
-		ObjectClusters.erase(ObjectClusters.begin()+i);
-	}
 
 	void Core::AddCollisionNode(Dormir::CollisionNode N){
 		if(allocatedNodes < maxNodes ){
@@ -267,15 +283,6 @@ namespace Dormir{
 				itf->FindBounds();
 				if(itf->BoundingBox[0].x<x && x<itf->BoundingBox[1].x && itf->BoundingBox[0].y<y && y<itf->BoundingBox[1].y )
 					return *it;
-			}
-		}
-		for(unsigned int i=0;i<ObjectClusters.size();i++){
-			for(unsigned int j=0;j<ObjectClusters[i].size();j++){
-				for(std::list<Dormir::Polygon>::iterator itf=ObjectClusters[i][j]->Body.begin();itf!=ObjectClusters[i][j]->Body.end();itf++){
-					itf->FindBounds();
-					if(itf->BoundingBox[0].x<x && x<itf->BoundingBox[1].x && itf->BoundingBox[0].y<y && y<itf->BoundingBox[1].y )
-						return ObjectClusters[i][j];
-				}
 			}
 		}
 		return NULL;
