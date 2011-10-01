@@ -38,7 +38,7 @@ class Player(core.GameObject):
 		self.textrendering.IgnoresCamera = False
 		self.TextBox =[self.Text,[-200,-200],[0]]
 		self.Text.SetText("lolololol")
-		super(Player,self).__init__([self.Body,self.LArm,self.RArm,self.LFoot,self.RFoot,self.Head,self.LEye,self.REye,self.TextBox],obj.Body,(0,0))
+		super(Player,self).__init__([self.Body,self.LArm,self.RArm,self.LFoot,self.RFoot,self.Head,self.LEye,self.REye,self.TextBox],obj.Body,0,0)
 		self.t = 0
 		self.Closest = None
 		self.LoadNextLevel = False
@@ -48,6 +48,7 @@ class Player(core.GameObject):
 		self.walkRight = 0
 		self.AllowJump = False
 		self.Inventory = []
+		self.SetPos(0,0)
 	def Col(self,other):
 		if isinstance(other,Portal):
 			pass

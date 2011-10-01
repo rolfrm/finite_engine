@@ -3,7 +3,7 @@ import random
 import Image
 import numpy.random
 import opencv.highgui as highgui
-
+import time
 
 def saveMap(Map,name):
 	min = Map.min()
@@ -77,7 +77,7 @@ def squareStep(curmap,scaling):
 def MakeMap():
 	Map = numpy.zeros((7,7))
 	#Map[2][2] = 5
-	for i in range(0,4):
+	for i in range(0,6):
 		scaling = 0.5**float(i)
 		Map = squareStep(Map,scaling)
 		Map = diamondStep(Map,scaling)
@@ -115,7 +115,7 @@ def ErosionFilter(Map, iterations):
 	counter = 0
 	#water += 0.5
 	for i in range(0,iterations):
-		
+		t = time.time()
 		counter +=1	
 		hl = padding.copy()
 		hr = padding.copy()
@@ -174,6 +174,7 @@ def ErosionFilter(Map, iterations):
 				counter = 0
 			if k == 'b' and counter > 10:
 				water[:water.shape[0]/8,:water.shape[1]/8] += 1
+		print "fps:",1/(time.time() - t)
 	return totalheight
 
 if __name__ == "__main__":

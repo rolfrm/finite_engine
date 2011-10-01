@@ -99,11 +99,12 @@ void Init(int width,int height, bool fullscreen, int FSAASamples){
 	glLoadIdentity();
 	glPointSize(3);
 	glColor4f(1,1,1,1);
-	glClearColor(0,0,0,1);
+	glClearColor(0,0,0,0);
+	glDisable(GL_BLEND);
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
-	glEnable(GL_BLEND);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+	//glEnable(GL_BLEND);
+	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_NORMALIZE);
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
@@ -153,11 +154,21 @@ Texture::Texture(char* data, int width, int height, int colorChannels, int input
 	UpdateTexture(data,  width,  height,  colorChannels,  inputSize);
 	ref = new int;
 	*ref = 1;
+	
+	this->width = width;
+	this->height = height;
+	this->channels = colorChannels;
+	this->typesize = inputSize;
+	
 }
 
 Texture::Texture(const Texture& copy){
 	gltex = copy.gltex;
 	ref = copy.ref;
+	width = copy.width;
+	height = copy.height;
+	channels = copy.channels;
+	typesize = copy.typesize;
 	*ref +=1;
 }
 
@@ -178,6 +189,12 @@ Texture & Texture::operator=(const Texture & other){
 
 	gltex = other.gltex;
 	ref = other.ref;
+	width = other.width;
+	height = other.height;
+	channels = other.channels;
+	typesize = other.typesize;
+	
+	
 	*ref +=1;
 	return *this;
 }
@@ -214,7 +231,7 @@ void Texture::UpdateTexture(char * data, int width, int height, int colorChannel
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 		
-		glTexImage2D(GL_TEXTURE_2D,0,colorChannels,width,height,0,glCol,intype,data);
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA16F,width,height,0,glCol,intype,data);
 }
 
 unsigned int Texture::GetGLTexture(){
@@ -649,4 +666,37 @@ void FrameBuffer::Bind(){
 }
 void FrameBuffer::UnBind(){
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
+}
+
+Image FrameBuffer::GetBufferImage(){
+	glReadBuffer(GL_FRONT);
+	Image img(NULL,tex.width,tex.height,4,1);
+	glReadPixels(0,0,tex.width,tex.height,GL_RGBA,GL_FLOAT,&(img.dataf[0]));
+	return img;
+}
+
+Image::Image(char * data, int width, int height, int channels, int dataType){
+	 Width = width;
+	 Height = height;
+	 Channels = channels;
+	 DataType = dataType;
+	 dataf = std::vector<float>(width*height*channels);
+}
+float Image::At(int x, int y, int channel){
+	
+}
+Image::~Image(){
+	//delete []this->data;
+}
+
+std::vector<float> Image::AsFloatVector(){
+	return dataf;
+}
+
+float SumFloatVector(std::vector<float> fv,int offset,int step ){
+	float out = 0;
+	for(int i = offset; i < fv.size(); i+= step){
+		out += fv[i];
+	}
+	return out; 
 }

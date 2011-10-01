@@ -30,8 +30,7 @@ class GameObject(object):
 		self.Visual = graphicsObject
 		self.Body = physicsObject
 		self.offset = offset
-		self.x = x
-		self.y = y
+		self.SetPos(x,y)
 		self.a = a
 		self.z = 0
 		self.parralax = 1
@@ -47,6 +46,7 @@ class GameObject(object):
 		self.x = x
 		self.y = y
 		if self.Body is not 0:
+			print self
 			self.Body.SetPosition(physics.Vec2(x,y))
 	def UpdatePos(self):
 		if self.Body is not 0:

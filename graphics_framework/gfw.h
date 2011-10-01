@@ -13,6 +13,10 @@ class Texture{
 	void UpdateTexture(char * data, int width, int height, int colorChannels, int inputSize);
 	unsigned int gltex;
 	int *ref;
+	int width;
+	int height;
+	int channels;
+	int typesize;
 	
 };
 
@@ -173,15 +177,28 @@ class LightSystem{
 		void SetLight(Light light, int channel);
 };
 
+
+
+class Image{
+	public:
+	Image(char * data, int width, int height, int channels, int dataType);
+	~Image();
+	int Width, Height,Channels,DataType;
+	float At(int x, int y, int channel);
+	std::vector<float> AsFloatVector();
+	std::vector<float> dataf;
+	float * data;
+};
+
 class FrameBuffer{
 	public:
 	FrameBuffer(Texture outputTexture);
 	void Bind();
 	void UnBind();
-	
+	Image GetBufferImage();
 	Texture tex;
 	unsigned int fboId;
 };
 
-
+float SumFloatVector(std::vector<float>,int offset ,int step);
 
