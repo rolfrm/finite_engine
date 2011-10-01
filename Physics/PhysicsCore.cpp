@@ -26,6 +26,7 @@ namespace Dormir{
 		setBiasOverlap(0.2);
 	}
 
+
 	Core::~Core(){
 		delete CollisionDetecter;
 		delete [] Nodes;
