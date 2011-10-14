@@ -1,9 +1,10 @@
 %module gfw
 %{
 #include "gfw.h"
+#include "voxels.h"
 %}
 
-
+%include "voxels.h"
 %include "defines.h"
 %include "std_vector.i"
 %include "std_string.i"

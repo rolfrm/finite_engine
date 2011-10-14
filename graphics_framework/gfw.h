@@ -200,5 +200,18 @@ class FrameBuffer{
 	unsigned int fboId;
 };
 
+class Texture3D{
+	public:
+	Texture3D(int width, int height, int depth, int type, char * data);
+	int Width;
+	int Height;
+	int Depth;
+	unsigned int tex;
+	void Bind(unsigned int loc);
+	
+	
+};
+
+
 float SumFloatVector(std::vector<float>,int offset ,int step);
 

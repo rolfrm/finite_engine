@@ -700,3 +700,26 @@ float SumFloatVector(std::vector<float> fv,int offset,int step ){
 	}
 	return out; 
 }
+
+Texture3D::Texture3D(int width, int height, int depth, int type, char * data){
+	glEnable(GL_TEXTURE_3D);
+	glGenTextures(1, & tex);
+	Width = width;
+	Height = height;
+	Depth = depth;
+	glBindTexture(GL_TEXTURE_3D, tex);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, Width, Height, Depth, 0, GL_RGBA,GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_3D);
+}
+
+void Texture3D::Bind(unsigned int loc){
+	glBindTexture(GL_TEXTURE_3D, tex);
+	char buf[7];
+	sprintf(buf,"tex3D%i",loc);
+	ActiveShader.SetUniform1i(loc,buf);	
+}

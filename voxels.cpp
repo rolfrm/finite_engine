@@ -14,7 +14,7 @@ Voxel& VoxelGrid::At(int x, int y, int z){
 
 
 int main(){
-	VoxelGrid a(10,10,10);
+	VoxelGrid a(16,16,16);
 	for(int i = 0; i < 10; i++){
 		for(int j = 0; j < 10; j++){
 			for( int k = 0; k < 10; k++){
