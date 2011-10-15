@@ -21,9 +21,6 @@ void printLog(GLuint obj)
 		std::cout << infoLog << "\n";
 }
 
-
-
-
 std::list<KeyEvent> KeyEvents;
 std::list<MouseEvent> MouseEvents;
 float X;
