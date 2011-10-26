@@ -1,6 +1,8 @@
-#include <GL/glew.h>
+//#include <GL/glew.h>
+#define GL_GLEXT_PROTOTYPES
 #include <GL/glfw.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include "gfw.h"
 #include <string>
 #include <iostream>
@@ -103,11 +105,11 @@ void Init(int width,int height, bool fullscreen, int FSAASamples){
 	//glEnable(GL_BLEND);
 	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_NORMALIZE);
-	GLenum err = glewInit();
+	/*GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
 		std::cout << "Error setting up GLEW!\n";
-	}
+	}*/
 	
 }
 
