@@ -10,7 +10,7 @@ uniform float phase;
 varying vec2 vuv;
 varying float amplitude;
 void main(){
-	amplitude =0.8;
+	amplitude =0.5;
 	vuv = uv;
 	vuv.x += phase;	
 	gl_Position = vec4(pos,0,1);
@@ -58,7 +58,7 @@ gfw.SetActiveShader(s1)
 s1.SetUniform1f(sspeed,"SamplingSpeed")
 s1.SetUniform1f(slen,"BlockSize")
 
-t1 = gfw.Texture(int(slen),1,1,4,0)
+t1 = gfw.Texture(int(slen),1,1,4,1)
 fb = gfw.FrameBuffer(t1)
 p = pyaudio.PyAudio()
 stream = p.open(format = pyaudio.paFloat32,channels = 1,rate = 44100,frames_per_buffer = slen,output = True)
