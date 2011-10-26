@@ -4,17 +4,30 @@
 #define MAXTEXTURES 2
 class Texture{
 	public:
-	Texture(char* data, int width, int height, int colorChannels, int inputSize);
+  	Texture(char* data, int width, int height, int colorChannels, int inputSize,int IncrasedRange);
+  	Texture(int width, int height, int colorChannels, int inputSize,int IncrasedRange); //2d tex
+  	Texture(int width,  int colorChannels, int inputSize,int IncrasedRange); //1d tex
+  	Texture(int width, int height, int depth, int colorChannels, int inputSize,int IncrasedRange);//3d tex
 	Texture();
 	Texture(const Texture& copy);
 	Texture & operator=(const Texture & other);
 	~Texture();
 	unsigned int GetGLTexture();
-	void UpdateTexture(char * data, int width, int height, int colorChannels, int inputSize);
+	void LoadData(char * data,int width, int height, int depth);
+	void GenMipmaps();
+	void UpdateTexture(char * data, int width, int height, int depth, int colorChannels, int inputSize,int IncreasedRange);
 	unsigned int gltex;
+	unsigned int texdim;
+	unsigned int glCol;
+	unsigned int intype;
+	unsigned int Channels;
+	int range;
+	
+	
 	int *ref;
 	int width;
 	int height;
+	int depth;
 	int channels;
 	int typesize;
 	
@@ -98,14 +111,6 @@ class Text:public Drawable{
 	Polygon Quad;
 };
 
-
-/*
-class Framebuffer{
-	public:
-	Framebuffer();
-	Texture GetAsTexture();
-};*/
-
 class Shader{
 	public:
 	Shader(const char * vertexSource, const char * fragmentSource);
@@ -181,8 +186,7 @@ class LightSystem{
 
 class Image{
 	public:
-	Image(char * data, int width, int height, int channels, int dataType);
-	~Image();
+	Image(int width, int height, int channels, int dataType);
 	int Width, Height,Channels,DataType;
 	float At(int x, int y, int channel);
 	std::vector<float> AsFloatVector();
@@ -200,6 +204,24 @@ class FrameBuffer{
 	unsigned int fboId;
 };
 
+class FrameDoubleBuffer{
+ public:
+  FrameDoubleBuffer(Texture buffer1, Texture buffer2);
+  void SwapBuffers();
+  Image GetCurrentBufferImage();
+  void Bind();
+  void Unbind();
+  Texture GetBufferedTexture();
+  Texture GetActiveTexture();
+ private:
+  int currentBuffer;
+  Texture buf0;
+  Texture buf1;
+  unsigned int fboId;
+  unsigned int pbo;
+
+};
+
 class Texture3D{
 	public:
 	Texture3D(int width, int height, int depth, int type, char * data);
@@ -208,10 +230,9 @@ class Texture3D{
 	int Depth;
 	unsigned int tex;
 	void Bind(unsigned int loc);
-	
-	
 };
 
 
 float SumFloatVector(std::vector<float>,int offset ,int step);
-
+const char * GetFloatVectorPtr(std::vector<float> * vec);
+std::string GetFloatVectorStr(std::vector<float> * vec);

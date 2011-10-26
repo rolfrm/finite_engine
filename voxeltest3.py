@@ -31,40 +31,47 @@ gfw.SetBGColor(1,0,0)
 vox1 = gfw.NTree()
 
 import math
-for i in range(0,1000):
-	for j in range(0,1000):
-		x = float(i)/1000
-		y = float(j)/1000
+for i in range(0,500):
+	for j in range(0,500):
+		x = float(i)/500
+		y = float(j)/500
 		#print x,y
-		vox1.InsertPoint(x,0.01 ,y,7 ,int(0x99FF99))
+		vox1.InsertPoint(x,0.01 ,y,6 ,int(0x99FF99))
 		if x > 0.3 and x < 0.7 and y >0.3 and y < 0.7:
 			vox1.InsertPoint(x,math.sin(x*20)*math.cos(y*20)*0.04 +0.1 + math.sin(x*80)*0.02 + math.cos(y*160)*0.01 - 0.005 ,y,8 ,int(0xAAAAAA + int(math.sin(x+y)*20)))
 			vox1.InsertPoint(x,math.sin(x*20)*math.cos(y*20)*0.04 +0.1 + math.sin(x*80)*0.02 + math.cos(y*160)*0.01 - 0.015 ,y,8 ,int(0xAAAAAA + int(math.sin(x+y)*20)))
 		#vox1.InsertPoint(x,math.sin(x*20)*math.cos(y*20)*0.04 +0.1 + math.sin(x*80)*0.02 + math.cos(y*160)*0.01 - 0.005 ,y,7 	,int(0xAAAAAA + int(math.sin(x+y)*20)))
 
 imgdata = numpy.zeros( (500*4,500),dtype=numpy.uint8)
-flowbuffer1 = gfw.Texture(imgdata.tostring(),100,100,4,1)
+flowbuffer1 = gfw.Texture(imgdata.tostring(),200,200,4,1)
 poly.AddTexture(flowbuffer1,0)
 import random
 import time
 import math
 i = 0
 scene = gfw.Scene(vox1)
-x = 0.5001
+x = 0.6501
 y = 0.00
-z = 0.5001
+z = 0.6661
 movz = 0
 movr = 0
 r = 0
+#scene.SetTree(vox1.GetChild(0,0,0))
 scene.SetTree(vox1)
+vox1.UpdateTree()
+
+x = 0.50001
+y = 0.00
+z = 0.50001
+
 for k in range(0,5000):
 	
 	if k % 50 == 0:
 		i+=1
 	t = time.time()
 	scene.SetRayLight(gfw.MakeRayLight(0.5+ math.sin(k*0.01 +1)*0.3,0.4,0.5 + 0.1 ,1,1,0.5,0.01,1),0)
-	#scene.SetRayLight(gfw.MakeRayLight(0.5+ math.sin(k*0.01+2)*0.3,0.2,0.5 ,0,1,0,0.01,1),1)
-	#scene.SetRayLight(gfw.MakeRayLight(0.5+ math.sin(k*0.01)*0.3,0.2,0.5  - 0.1,0,0,1,0.01,1),2)
+	scene.SetRayLight(gfw.MakeRayLight(0.5+ math.sin(k*0.01+2)*0.3,0.2,0.5 ,0,1,0,0.01,1),1)
+	scene.SetRayLight(gfw.MakeRayLight(0.5+ math.sin(k*0.01)*0.3,0.2,0.5  - 0.1,0,0,1,0.01,1),2)
 	#scene.SetRayLight(gfw.MakeRayLight(0.5+ math.sin(k*0.01)*0.3+ 0.05,0.3+ 0.05,0.5 ,1,1,1,0.01,1),3)
 	#scene.SetRayLight(gfw.MakeRayLight(0.8,math.sin(k*0.01),0.9,1,1,1,0.01,1),1)
 	#scene.SetRayLight(gfw.MakeRayLight(0.7,math.sin(k*0.01),0.9,1,1,1,0.01,1),1)
@@ -119,9 +126,13 @@ for k in range(0,5000):
 				movr -=1
 		elif keyEv[i].key == 257:
 			quit()
-	z += movz*0.001
-	r += movr*0.01
+		elif keyEv[i].key == 76:
+			if keyEv[i].action ==1:
+				scene.DoLightning = not scene.DoLightning
+	z += math.cos(r-0.1)*movz*0.001
+	x += math.sin(r-0.1)*movz*0.001
+	r += movr*0.1
 	#for i in keyEv:
 	#	print i
-	time.sleep(0.01)
-	#print "Rendering took:" + str(1/(time.time()-t)),x,y,z	
+	time.sleep(0.03)
+	print "Rendering took:" + str(1/(time.time()-t)),x,y,z	

@@ -99,6 +99,7 @@ void Init(int width,int height, bool fullscreen, int FSAASamples){
 	glClearColor(0,0,0,0);
 	glDisable(GL_BLEND);
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
+	glEnable(GL_STENCIL_TEST);
 	//glEnable(GL_BLEND);
 	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_NORMALIZE);
@@ -146,17 +147,47 @@ void Draw2(float x,float y, float rotation, Drawable* drw){
 	Draw(x,y,rotation,drw);
 }
 
-Texture::Texture(char* data, int width, int height, int colorChannels, int inputSize){
+Texture::Texture(char* data, int width, int height, int colorChannels, int inputSize,int IncreasedRange){
 	gltex = -1;
-	UpdateTexture(data,  width,  height,  colorChannels,  inputSize);
+	UpdateTexture(data,  width,  height,0,  colorChannels,  inputSize,IncreasedRange);
 	ref = new int;
 	*ref = 1;
 	
-	this->width = width;
-	this->height = height;
 	this->channels = colorChannels;
 	this->typesize = inputSize;
 	
+}
+
+Texture::Texture( int width, int height, int colorChannels, int inputSize,int IncreasedRange){
+	gltex = -1;
+	
+	ref = new int;
+	*ref = 1;
+	
+	UpdateTexture(NULL,  width,  height,0,  colorChannels,  inputSize,IncreasedRange);
+	this->channels = colorChannels;
+	this->typesize = inputSize;	
+}
+
+
+Texture::Texture(int width, int colorChannels, int inputSize,int IncreasedRange){
+gltex = -1;
+	
+	ref = new int;
+	*ref = 1;
+	
+	UpdateTexture(NULL,  width,  0,0,  colorChannels,  inputSize,IncreasedRange);
+	this->channels = colorChannels;
+	this->typesize = inputSize;
+}
+Texture::Texture(int width, int height, int depth, int colorChannels, int inputSize,int IncreasedRange){
+gltex = -1;
+	UpdateTexture(NULL,  width,  height, depth,  colorChannels,  inputSize,IncreasedRange);
+	ref = new int;
+	*ref = 1;
+	
+	this->channels = colorChannels;
+	this->typesize = inputSize;
 }
 
 Texture::Texture(const Texture& copy){
@@ -164,8 +195,12 @@ Texture::Texture(const Texture& copy){
 	ref = copy.ref;
 	width = copy.width;
 	height = copy.height;
+	depth = copy.depth;
+	texdim = copy.texdim;
+	glCol = copy.glCol;
 	channels = copy.channels;
 	typesize = copy.typesize;
+	Channels = copy.Channels;
 	*ref +=1;
 }
 
@@ -188,6 +223,10 @@ Texture & Texture::operator=(const Texture & other){
 	ref = other.ref;
 	width = other.width;
 	height = other.height;
+	depth = other.depth;
+	texdim = other.texdim;
+	glCol = other.glCol;
+	Channels = other.Channels;
 	channels = other.channels;
 	typesize = other.typesize;
 	
@@ -206,31 +245,78 @@ Texture::~Texture(){
 		}
 	}
 }
-void Texture::UpdateTexture(char * data, int width, int height, int colorChannels, int inputSize){
-		int glCol;
-		if(colorChannels == 3){
-			glCol = GL_RGB;
-		}else if(colorChannels == 4){
-			glCol = GL_RGBA;
-		}else{
-			glCol = GL_INTENSITY;
+void Texture::UpdateTexture(char * data, int width, int height, int depth, int colorChannels, int inputSize, int IncreasedRange){
+		
+		this->width = width;
+		this->height = height;
+		this->depth = depth;
+		Channels = colorChannels;
+		switch(colorChannels){
+			case 1: glCol = GL_LUMINANCE;break;
+			case 2: glCol = GL_LUMINANCE_ALPHA;break;
+			case 3: glCol = GL_RGB;break;
+			case 4: glCol = GL_RGBA;break;
 		}
-		unsigned int intype;
+		
+		intype;
 		if (inputSize == 1){
 			intype = GL_UNSIGNED_BYTE;
 		}else if(inputSize == 4){
 			intype = GL_FLOAT;
 		}
-		glGenTextures(1,&gltex);
-		glBindTexture(GL_TEXTURE_2D, gltex);
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_NEAREST );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
 		
-		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA16F,width,height,0,glCol,intype,data);
+		texdim = GL_TEXTURE_1D;
+		if(height > 0){
+			texdim = GL_TEXTURE_2D;
+			if(depth > 0){
+				texdim = GL_TEXTURE_3D;
+			}
+		}
+		
+		
+		glGenTextures(1,&gltex);
+		glBindTexture(texdim, gltex);
+		glTexParameterf( texdim, GL_TEXTURE_MIN_FILTER,GL_NEAREST );
+		glTexParameterf( texdim, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glTexParameterf( texdim, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameterf( texdim, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		
+		range = GL_RGBA;
+		if(IncreasedRange > 0){
+		  if(IncreasedRange == 1){
+		  range =GL_RGBA16F;
+		  }else{
+		    range = GL_RGBA32F;
+		  }
+		}
+		if(texdim == GL_TEXTURE_1D){
+			glTexImage1D(texdim,0,range,width,0,glCol,intype,data);
+		}else if(texdim == GL_TEXTURE_2D){
+			glTexImage2D(texdim,0,range,width,height,0,glCol,intype,data);
+		}else{
+			glTexImage3D(texdim,0,range,width,height,depth,0,glCol,intype,data);
+		}
 }
 
+void Texture::LoadData(char * data,int width, int height, int depth){
+	this->width = width;
+	this->height = height;
+	this->depth = depth;
+	if(texdim == GL_TEXTURE_1D){
+		glTexImage1D(texdim,0,range,width,0,glCol,intype,data);
+	}else if(texdim == GL_TEXTURE_2D){
+		glTexImage2D(texdim,0,range,width,height,0,glCol,intype,data);
+	}else{
+		glTexImage3D(texdim,0,range,width,height,depth,0,glCol,intype,data);
+	}
+
+
+}
+
+void Texture::GenMipmaps(){
+	glBindTexture(texdim,gltex);
+	glGenerateMipmap(texdim);
+}
 unsigned int Texture::GetGLTexture(){
 	return gltex;
 }
@@ -652,27 +738,98 @@ FrameBuffer::FrameBuffer(Texture outputTexture){
 	tex = outputTexture;
 	glGenFramebuffers(1,&fboId);
 	Bind();
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, outputTexture.GetGLTexture(), 0);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,tex.texdim, outputTexture.GetGLTexture(), 0);
 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	std::cout << status << " " << GL_FRAMEBUFFER_COMPLETE << "\n";
+	
 	UnBind();
 }
 
 void FrameBuffer::Bind(){
+	glViewport(0,0,tex.width,tex.height);
 	glBindFramebuffer(GL_FRAMEBUFFER, fboId);
 }
 void FrameBuffer::UnBind(){
+	glViewport(0,0,ScreenSize.X,ScreenSize.Y);
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 
 Image FrameBuffer::GetBufferImage(){
 	glReadBuffer(GL_FRONT);
-	Image img(NULL,tex.width,tex.height,4,1);
-	glReadPixels(0,0,tex.width,tex.height,GL_RGBA,GL_FLOAT,&(img.dataf[0]));
+	Image img(tex.width,tex.height,tex.Channels,1);
+	
+	glReadPixels(0,0,tex.width,tex.height,GL_ALPHA,GL_FLOAT,&(img.dataf[0]));
+	
 	return img;
 }
 
-Image::Image(char * data, int width, int height, int channels, int dataType){
+
+FrameDoubleBuffer::FrameDoubleBuffer(Texture buffer1, Texture buffer2){
+  buf0 = buffer1;
+  buf1 = buffer2;
+  currentBuffer = 0;
+ 
+  glGenFramebuffers(1,&fboId);
+  Bind();
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,buf0.texdim, buf0.GetGLTexture(),0);
+  Unbind();
+  glGenBuffers(1,&pbo);
+  glBindBuffer(GL_PIXEL_PACK_BUFFER,pbo);
+  glBufferData(GL_PIXEL_PACK_BUFFER,buf0.width*buf0.height*4*4,NULL,GL_STREAM_READ);
+  glBindBuffer(GL_PIXEL_PACK_BUFFER,0);
+  
+}
+
+void FrameDoubleBuffer::SwapBuffers(){
+  
+  int tex;
+if(currentBuffer == 1){
+  currentBuffer = 0;
+  tex = buf1.GetGLTexture();
+ }else{
+  currentBuffer = 1;
+  tex = buf0.GetGLTexture();
+ }
+ Bind();
+ glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, tex,0);
+ Unbind();
+}
+
+void FrameDoubleBuffer::Bind(){
+  glViewport(0,0,buf1.width,buf1.height);
+  glBindFramebuffer(GL_FRAMEBUFFER, fboId);
+}
+void FrameDoubleBuffer::Unbind(){
+   glViewport(0,0,ScreenSize.X,ScreenSize.Y);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+Image FrameDoubleBuffer::GetCurrentBufferImage(){
+  glReadBuffer(GL_FRONT);
+  
+
+  Image img(buf1.width,buf1.height,4,1);
+  glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB,pbo);  
+
+ glReadPixels(0,0,buf1.width,buf1.height,buf1.channels,GL_FLOAT,&(img.dataf[0]));
+  return img;
+}
+
+Texture FrameDoubleBuffer::GetBufferedTexture(){
+	if(currentBuffer == 0){
+		return buf1;
+	}
+	return buf0;
+	
+}
+
+Texture FrameDoubleBuffer::GetActiveTexture(){
+	if(currentBuffer == 0) {
+		return buf0;
+	}
+	return buf1;
+}
+
+Image::Image( int width, int height, int channels, int dataType){
 	 Width = width;
 	 Height = height;
 	 Channels = channels;
@@ -681,9 +838,6 @@ Image::Image(char * data, int width, int height, int channels, int dataType){
 }
 float Image::At(int x, int y, int channel){
 	
-}
-Image::~Image(){
-	//delete []this->data;
 }
 
 std::vector<float> Image::AsFloatVector(){
@@ -697,6 +851,16 @@ float SumFloatVector(std::vector<float> fv,int offset,int step ){
 	}
 	return out; 
 }
+
+const char * GetFloatVectorPtr(std::vector<float> * vec){
+	
+	return (const char*) &((*vec)[0]);
+}	
+
+std::string GetFloatVectorStr(std::vector<float> * vec){
+	
+	return std::string((const char*) &((*vec)[0]),vec->size()*4);
+}	
 
 Texture3D::Texture3D(int width, int height, int depth, int type, char * data){
 	glEnable(GL_TEXTURE_3D);
