@@ -1,8 +1,9 @@
 //#include <GL/glew.h>
 #define GL_GLEXT_PROTOTYPES
+#include <GL/glew.h>
 #include <GL/glfw.h>
 #include <GL/gl.h>
-#include <GL/glext.h>
+
 #include "gfw.h"
 #include <string>
 #include <iostream>
@@ -105,18 +106,16 @@ void Init(int width,int height, bool fullscreen, int FSAASamples){
 	//glEnable(GL_BLEND);
 	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_NORMALIZE);
-	/*GLenum err = glewInit();
+	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
 		std::cout << "Error setting up GLEW!\n";
-	}*/
+	}
 	
 }
 
 Vec ScreenToWorldCoordinates(Vec in){
 		Vec out;
-		
-		std::cout << in.Y <<" " << 2*(in.Y/ScreenSize.Y - 0.5) << "\n";
 		out.X = currentZoomLevel.X*(in.X/ScreenSize.X - 0.5)*2;
 		out.Y = -currentZoomLevel.Y*(in.Y/ScreenSize.Y - 0.5)*2;
 		return out;
@@ -126,10 +125,14 @@ Vec WorldToScreenCoordinates(Vec in){
 	out.X = (in.X/currentZoomLevel.X+1)*ScreenSize.X/2;
 	out.Y = -(in.Y/currentZoomLevel.Y+1)*ScreenSize.Y/2;
 	return out;
-	}
+}
 void Refresh(){
 		glfwSwapBuffers();
-		glClear(GL_COLOR_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void ClearBuffer(){
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void DeInit(){
@@ -280,8 +283,8 @@ void Texture::UpdateTexture(char * data, int width, int height, int depth, int c
 		glBindTexture(texdim, gltex);
 		glTexParameterf( texdim, GL_TEXTURE_MIN_FILTER,GL_NEAREST );
 		glTexParameterf( texdim, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		glTexParameterf( texdim, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameterf( texdim, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glTexParameterf( texdim, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameterf( texdim, GL_TEXTURE_WRAP_T, GL_REPEAT );
 		
 		range = GL_RGBA;
 		if(IncreasedRange > 0){
@@ -304,21 +307,33 @@ void Texture::LoadData(char * data,int width, int height, int depth){
 	this->width = width;
 	this->height = height;
 	this->depth = depth;
-	if(texdim == GL_TEXTURE_1D){
-		glTexImage1D(texdim,0,range,width,0,glCol,intype,data);
-	}else if(texdim == GL_TEXTURE_2D){
-		glTexImage2D(texdim,0,range,width,height,0,glCol,intype,data);
-	}else{
-		glTexImage3D(texdim,0,range,width,height,depth,0,glCol,intype,data);
+	glBindTexture(texdim,gltex);
+	switch(texdim){
+	case GL_TEXTURE_1D:
+		glTexImage1D(texdim,0,range,width,0,glCol,intype,data);break;
+	case GL_TEXTURE_2D:
+		glTexImage2D(texdim,0,range,width,height,0,glCol,intype,data);break;
+	case GL_TEXTURE_3D:
+		glTexImage3D(texdim,0,range,width,height,depth,0,glCol,intype,data);break;
 	}
-
-
 }
 
 void Texture::GenMipmaps(){
 	glBindTexture(texdim,gltex);
 	glGenerateMipmap(texdim);
 }
+
+void Texture::SetMagnifyingInterpolation(INTERPOLATION ipol){
+	glBindTexture(texdim,gltex);
+	glTexParameterf( texdim, GL_TEXTURE_MAG_FILTER,ipol);
+}
+void Texture::SetMinifyingInterpolation(INTERPOLATION ipol){
+	glBindTexture(texdim,gltex);
+	glTexParameterf( texdim, GL_TEXTURE_MIN_FILTER,ipol);
+
+}
+
+
 unsigned int Texture::GetGLTexture(){
 	return gltex;
 }
@@ -429,29 +444,6 @@ void Drawable::ActivateTextures(){
 	}
 }
 
-DrawableTest::DrawableTest(){
-	
-	unsigned int vboId;
-	float data[6] = {0,0 ,-0.5,-0.5,0.5,-0.5};
-	glGenBuffersARB(1,&vboId);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vboId);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB,2*4*3,data,GL_STATIC_DRAW_ARB);
-	testVBO = vboId;
-	
-}
-
-void DrawableTest::Draw(){
-		int posAttribLoc = glGetAttribLocation(ActiveShader.ShaderProgram,"pos");
-		glEnableVertexAttribArray(posAttribLoc);
-		
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, testVBO);
-		glVertexAttribPointer(posAttribLoc,2,GL_FLOAT,0,0,0);
-		
-		glDrawArrays(GL_POINTS,0, 3);
-		glDisableVertexAttribArray(posAttribLoc);
-}
-
-
 unsigned int GenVBO(void * data, unsigned int lenBytes, unsigned int type, unsigned int glBufferType){
 	if(type == 0){
 		type = GL_STATIC_DRAW_ARB;
@@ -477,7 +469,6 @@ Polygon::Polygon(){
 	CreatedPolygons++;
 }
 Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType,unsigned int uvType){
-//std::cout << "Polygon constructed" << CreatedPolygons << "\n";
 	Init(vertexes,indices,colors,uvs,vertType,uvType);
 	vertexes.clear();
 	indices.clear();
@@ -485,12 +476,8 @@ Polygon::Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices,
 	uvs.clear();
 	}
 
-Polygon::Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int vertType,unsigned int uvType){
-	Init(std::vector<float>((float*)rawdata_verts,((float*)rawdata_verts) + lv),std::vector<unsigned int>((unsigned int*)rawdata_indices,((unsigned int*)rawdata_indices)+li),std::vector<float>((float*)rawdata_color,((float*)rawdata_color)+lc),std::vector<float>((float*)rawdata_uvs,((float*)rawdata_uvs)+ luv),vertType,uvType);
-	
-	}
+
 Polygon::~Polygon(){
-	//std::cout << "Polygon destructed\n";
 	*ref -=1;
 	if(*ref == 0){
 		delete ref;
@@ -589,7 +576,7 @@ void Polygon::Unload(){
 	}
 }
 
-void Polygon::Draw(float x, float y, float rotation){
+void Polygon::Draw(float x, float y, float rotation){ //ARGS DEPRECATED!
 	ActiveShader.SetUniform1f(x,"Xoff");
 	ActiveShader.SetUniform1f(y,"Yoff");
 	ActiveShader.SetUniform1f(rotation,"Rotation");
@@ -742,7 +729,7 @@ FrameBuffer::FrameBuffer(Texture outputTexture){
 	Bind();
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,tex.texdim, outputTexture.GetGLTexture(), 0);
 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	
+	std::cout << "Framebuffer created, ok?" << (bool)(status == GL_FRAMEBUFFER_COMPLETE_EXT) << "\n";
 	UnBind();
 }
 
@@ -758,46 +745,34 @@ void FrameBuffer::UnBind(){
 Image FrameBuffer::GetBufferImage(){
 	glReadBuffer(GL_FRONT);
 	Image img(tex.width,tex.height,tex.Channels,1);
-	
-	glReadPixels(0,0,tex.width,tex.height,GL_ALPHA,GL_FLOAT,&(img.dataf[0]));
+	glReadPixels(0,0,tex.width,tex.height,tex.glCol,GL_FLOAT,&(img.dataf[0]));
 	
 	return img;
 }
 
 
-FrameDoubleBuffer::FrameDoubleBuffer(Texture buffer1, Texture buffer2){
-  buf0 = buffer1;
-  buf1 = buffer2;
-  currentBuffer = 0;
+FrameDoubleBuffer::FrameDoubleBuffer(Texture read, Texture write){
+  readBuffer = read;
+  writeBuffer = write;
  
   glGenFramebuffers(1,&fboId);
   Bind();
-  glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,buf0.texdim, buf0.GetGLTexture(),0);
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,readBuffer.texdim, writeBuffer.GetGLTexture(),0);
   Unbind();
-  glGenBuffers(1,&pbo);
-  glBindBuffer(GL_PIXEL_PACK_BUFFER,pbo);
-  glBufferData(GL_PIXEL_PACK_BUFFER,buf0.width*buf0.height*4*4,NULL,GL_STREAM_READ);
-  glBindBuffer(GL_PIXEL_PACK_BUFFER,0);
-  
 }
 
 void FrameDoubleBuffer::SwapBuffers(){
   
-  int tex;
-if(currentBuffer == 1){
-  currentBuffer = 0;
-  tex = buf1.GetGLTexture();
- }else{
-  currentBuffer = 1;
-  tex = buf0.GetGLTexture();
- }
- Bind();
- glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, tex,0);
- Unbind();
+  Texture saved = readBuffer;
+  readBuffer = writeBuffer;
+  writeBuffer = saved;
+  Bind();
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, writeBuffer.GetGLTexture(),0);
+  Unbind();
 }
 
 void FrameDoubleBuffer::Bind(){
-  glViewport(0,0,buf1.width,buf1.height);
+  glViewport(0,0,writeBuffer.width,writeBuffer.height);
   glBindFramebuffer(GL_FRAMEBUFFER, fboId);
 }
 void FrameDoubleBuffer::Unbind(){
@@ -805,30 +780,20 @@ void FrameDoubleBuffer::Unbind(){
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-Image FrameDoubleBuffer::GetCurrentBufferImage(){
+Image FrameDoubleBuffer::GetCurrentWriteBufferImage(){
   glReadBuffer(GL_FRONT);
-  
-
-  Image img(buf1.width,buf1.height,4,1);
-  glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB,pbo);  
-
- glReadPixels(0,0,buf1.width,buf1.height,buf1.channels,GL_FLOAT,&(img.dataf[0]));
+  Image img(writeBuffer.width,writeBuffer.height,writeBuffer.Channels,1);
+  glReadPixels(0,0,writeBuffer.width,writeBuffer.height,writeBuffer.glCol,GL_FLOAT,&(img.dataf[0]));
   return img;
 }
 
-Texture FrameDoubleBuffer::GetBufferedTexture(){
-	if(currentBuffer == 0){
-		return buf1;
-	}
-	return buf0;
+Texture FrameDoubleBuffer::GetReadTexture(){
+	return readBuffer;
 	
 }
 
-Texture FrameDoubleBuffer::GetActiveTexture(){
-	if(currentBuffer == 0) {
-		return buf0;
-	}
-	return buf1;
+Texture FrameDoubleBuffer::GetWriteTexture(){
+  return writeBuffer;
 }
 
 Image::Image( int width, int height, int channels, int dataType){
@@ -839,7 +804,7 @@ Image::Image( int width, int height, int channels, int dataType){
 	 dataf = std::vector<float>(width*height*channels);
 }
 float Image::At(int x, int y, int channel){
-	
+  return dataf[(x + y*Width)*Channels];
 }
 
 std::vector<float> Image::AsFloatVector(){
@@ -886,3 +851,4 @@ void Texture3D::Bind(unsigned int loc){
 	sprintf(buf,"tex3D%i",loc);
 	ActiveShader.SetUniform1i(loc,buf);	
 }
+

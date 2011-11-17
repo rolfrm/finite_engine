@@ -1,9 +1,18 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <GL/gl.h>
 #define MAXTEXTURES 2
 class Texture{
 	public:
+	
+	enum INTERPOLATION{
+		NEAREST = GL_NEAREST,
+		LINEAR = GL_LINEAR,
+		/*LINEAR_MIPMAP = GL_LINEAR_MIPMAP,
+		NEAREST_MIPMAP = GL_NEAREST_MIPMAP*/
+	};
+	
   	Texture(char* data, int width, int height, int colorChannels, int inputSize,int IncrasedRange);
   	Texture(int width, int height, int colorChannels, int inputSize,int IncrasedRange); //2d tex
   	Texture(int width,  int colorChannels, int inputSize,int IncrasedRange); //1d tex
@@ -15,6 +24,8 @@ class Texture{
 	unsigned int GetGLTexture();
 	void LoadData(char * data,int width, int height, int depth);
 	void GenMipmaps();
+	void SetMagnifyingInterpolation(INTERPOLATION ipol);
+	void SetMinifyingInterpolation(INTERPOLATION ipol);
 	void UpdateTexture(char * data, int width, int height, int depth, int colorChannels, int inputSize,int IncreasedRange);
 	unsigned int gltex;
 	unsigned int texdim;
@@ -45,13 +56,6 @@ class Drawable{
 		
 };
 
-class DrawableTest: public Drawable{
-		public:
-		DrawableTest();
-		void Draw();
-		
-		unsigned int testVBO;
-};
 #define POLYGON GL_POLYGON
 #define LINES GL_LINES
 class Polygon:public Drawable{
@@ -60,15 +64,12 @@ class Polygon:public Drawable{
 	 * */
 	public:
 	Polygon(std::vector<float> vertexes, std::vector<unsigned int> indices, std::vector<float> colors, std::vector<float> uvs,unsigned int vertType = 0,unsigned int uvType = 0);
-	Polygon(char * rawdata_verts,unsigned int lv,char* rawdata_indices, unsigned int li, char * rawdata_color, unsigned int lc, char* rawdata_uvs, unsigned int luv,unsigned int vertType = 0,unsigned int uvType= 0);
 	Polygon();
 	~Polygon();
 	Polygon(const Polygon& other);
 	Polygon & operator=(const Polygon& other);
 	
-	
-	
-	void Draw(float x, float y, float rotation);
+	void Draw(float x=0, float y=0, float rotation=0);
 	void SetDrawType(unsigned int);
 	void LoadUV(std::vector<float> uvVector, int drawType);
 	void ReloadUV(std::vector<float> uvVector,unsigned int offset = 0);
@@ -155,6 +156,7 @@ Vec WorldToScreenCoordinates(Vec in);
 void Init(int width,int height, bool fullscreen, int FSAASamples = 0);
 void DeInit();
 void Refresh();
+void ClearBuffer();
 void Draw(float x, float y,float rotation, Drawable * poly);
 std::list<KeyEvent> GetKeyEvents();
 std::list<MouseEvent> GetMouseEvents();
@@ -182,8 +184,6 @@ class LightSystem{
 		void SetLight(Light light, int channel);
 };
 
-
-
 class Image{
 	public:
 	Image(int width, int height, int channels, int dataType);
@@ -191,7 +191,6 @@ class Image{
 	float At(int x, int y, int channel);
 	std::vector<float> AsFloatVector();
 	std::vector<float> dataf;
-	float * data;
 };
 
 class FrameBuffer{
@@ -206,23 +205,23 @@ class FrameBuffer{
 
 class FrameDoubleBuffer{
  public:
-  FrameDoubleBuffer(Texture buffer1, Texture buffer2);
+  FrameDoubleBuffer(Texture read, Texture write);
   void SwapBuffers();
-  Image GetCurrentBufferImage();
+  Image GetCurrentWriteBufferImage();
   void Bind();
   void Unbind();
-  Texture GetBufferedTexture();
-  Texture GetActiveTexture();
+  Texture GetReadTexture();
+  Texture GetWriteTexture();
  private:
   int currentBuffer;
-  Texture buf0;
-  Texture buf1;
+  Texture readBuffer;
+  Texture writeBuffer;
   unsigned int fboId;
   unsigned int pbo;
 
 };
 
-class Texture3D{
+class Texture3D{ //Deprecated
 	public:
 	Texture3D(int width, int height, int depth, int type, char * data);
 	int Width;
