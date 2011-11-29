@@ -1,0 +1,45 @@
+import gfwi
+
+poly = gfwi.Polygon([-0.5,-0.5,0.5,-0.5,0.5,0.5,-0.5,0.5],[],[0,0,0,1,1,1,1,0],[0,0,0,1,1,1,1,0])
+
+class GameObject:
+	def __init__(self):
+		self.update = 0
+		self.x = 0
+		self.y = 0
+		self.poly = gfwi.Drawable((0,0),0,[1,1],poly)
+	def Update(self,a,b):
+		if self.update:
+			self.update()
+		#print "lol"
+def sayhey():
+	print "hey"
+
+def Save(savefile,level):
+	import pickle
+	pickle.dump(level,savefile)
+
+
+def Load(savefile,level):
+	import pickle
+	for i in range(len(level)):
+		level.pop()
+	level.extend(pickle.load(savefile))
+
+if not "level" in globals():
+	level = []
+	#print "lol?"
+def LoadGame():
+	print "Loading"
+	level.append(GameObject())
+	level.append(GameObject())
+	
+	for i in range(len(gfwi.ActiveDrawRutine)):
+		gfwi.ActiveDrawRutine.pop()
+	for i in level:
+		gfwi.ActiveDrawRutine.append(i.poly)
+
+def mainloop():
+	for i in level:
+		i.Update(level,'')
+	gfwi._Draw()

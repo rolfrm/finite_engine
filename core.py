@@ -38,6 +38,7 @@ class Core:
 		self.Running = True
 		
 		while self.Running == True:
+			gfw.ClearBuffer()
 			if not self.Level is 0:
 				self.Level.Update(0.01)
 			i += 1

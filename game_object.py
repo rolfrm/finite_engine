@@ -58,10 +58,10 @@ class GameObject(object):
 		x = self.x
 		y = self.y
 		if not self.IgnoresCamera:
-			#x -=campos[0]*self.parralax
-			#y -= campos[1]*self.parralax
-			x = (x - campos[0])*self.parralax
-			y = (y - campos[1])*self.parralax
+			x -=campos[0]*self.parralax
+			y -= campos[1]*self.parralax
+			#x = (x - campos[0])*self.parralax
+			#y = (y - campos[1])*self.parralax
 		if isinstance(self.Visual,list):
 			#[obj,[x,y],[depencies],resolved]
 			vlist = self.Visual[:]

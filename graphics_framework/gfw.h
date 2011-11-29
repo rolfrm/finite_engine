@@ -13,7 +13,7 @@ class Texture{
 		NEAREST_MIPMAP = GL_NEAREST_MIPMAP*/
 	};
 	
-  	Texture(char* data, int width, int height, int colorChannels, int inputSize,int IncrasedRange);
+  	Texture(char* data, int width, int height, int colorChannels, int inputSize,int IncrasedRange = 0);
   	Texture(int width, int height, int colorChannels, int inputSize,int IncrasedRange); //2d tex
   	Texture(int width,  int colorChannels, int inputSize,int IncrasedRange); //1d tex
   	Texture(int width, int height, int depth, int colorChannels, int inputSize,int IncrasedRange);//3d tex
@@ -21,6 +21,10 @@ class Texture{
 	Texture(const Texture& copy);
 	Texture & operator=(const Texture & other);
 	~Texture();
+
+
+	void Bind(const char * name);
+	void Bind(int location);
 	unsigned int GetGLTexture();
 	void LoadData(char * data,int width, int height, int depth);
 	void GenMipmaps();
@@ -121,6 +125,7 @@ class Shader{
 	void SetUniform1f(float value,const char * uniformname);
 	void SetUniform2f(float v1,float v2,const char * uniformname);
 	void SetUniform3f(float v1, float v2, float v3,const char * uniformname);
+	void SetUniform4f(float v1, float v2, float v3,float v4,const char * uniformname);
 	void SetUniform1i(int value, const char * uniformname);
 	void SetUniform1fv(float * data, unsigned int count, const char * uniformname);
 	void SetUniform2fv(float * data,unsigned int count, const char * uniformname);
@@ -164,6 +169,16 @@ Vec GetMousePos();
 void Zoom(float x,float y);
 void SetBGColor(float r, float g, float b);
 void SetActiveShader(Shader);
+Shader GetActiveShader();
+
+enum STATE{
+  ALPHA_BLEND = GL_BLEND,
+  NORMALIZE = GL_NORMALIZE,
+};
+
+void EnableState(STATE st);
+void DisableState(STATE st);
+
 //void SetActiveFramebuffer(Framebuffer*);
 class Light{
 			public:

@@ -28,7 +28,7 @@ class Player(core.GameObject):
 		
 		obj = MakeCompleteObject([-5.0,-28, -5.0,10.0, 5.0,10.0,5.0,-28.0])
 		obj.Body.setMass(1)
-		tex = gfw.Texture(fontImage.tostring(),fontImage.size[0],fontImage.size[1],4,1)
+		tex = gfw.Texture(fontImage.tostring(),fontImage.size[0],fontImage.size[1],4,1,0)
 		self.Text = gfw.Text(tex,0,1,0,1,10,10,32,15)
 		
 		self.textrendering = core.GameObject(self.Text)

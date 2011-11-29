@@ -1,4 +1,3 @@
-//#include <GL/glew.h>
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glew.h>
 #include <GL/glfw.h>
@@ -10,6 +9,16 @@
 #include <string.h>
 #include <stdio.h>
 #include <list>
+
+void EnableState(STATE st){
+  glEnable(st);
+}
+void DisableState(STATE st){
+  glDisable(st);
+}
+
+
+
 void printLog(GLuint obj)
 {
     int infologLength = 0;
@@ -68,6 +77,9 @@ Vec GetMousePos(){
 		return out;
 }
 Shader ActiveShader;
+Shader GetActiveShader(){
+	return ActiveShader;
+}
 void SetActiveShader(Shader s){
 		ActiveShader = s;
 		glUseProgram(s.ShaderProgram);
@@ -99,13 +111,11 @@ void Init(int width,int height, bool fullscreen, int FSAASamples){
 	glLoadIdentity();
 	glPointSize(3);
 	glColor4f(1,1,1,1);
-	glClearColor(0,0,0,0);
-	glDisable(GL_BLEND);
+	glClearColor(0.5,0.5,0.5,1);
 	glHint(GL_POLYGON_SMOOTH_HINT,GL_NICEST);
 	glEnable(GL_STENCIL_TEST);
-	//glEnable(GL_BLEND);
-	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_NORMALIZE);
+	glEnable(GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
@@ -338,6 +348,17 @@ unsigned int Texture::GetGLTexture(){
 	return gltex;
 }
 
+void Texture::Bind(int location){
+  glActiveTexture(GL_TEXTURE0 + location);
+  glBindTexture(texdim, gltex);
+}
+
+void Texture::Bind(const char * name){
+  int loc = glGetUniformLocation(ActiveShader.ShaderProgram,name);
+  glActiveTexture(GL_TEXTURE0 + loc);
+  glBindTexture(texdim,gltex);
+}
+
 
 Shader::Shader( const char * vertexsrc, const char * fragmentsrc){
 	const char* vsrc = vertexsrc;
@@ -369,6 +390,9 @@ void Shader::SetUniform2f(float v1,float v2,const char * uniformname){
 	}
 void Shader::SetUniform3f(float v1, float v2, float v3,const char * uniformname){
 		glUniform3f(GetUniformLocation(uniformname),v1,v2,v3);
+	}
+void Shader::SetUniform4f(float v1, float v2, float v3,float v4,const char * uniformname){
+  glUniform4f(GetUniformLocation(uniformname),v1,v2,v3,v4);
 	}
 void Shader::SetUniform1i(int value, const char * uniformname){
 		int loc = GetUniformLocation(uniformname);
